@@ -7,10 +7,10 @@ class CustomUserAdmin(UserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'role', 'clinic', 'is_staff')
     list_filter = ('role', 'clinic', 'is_staff', 'is_superuser', 'is_active')
     fieldsets = UserAdmin.fieldsets + (
-        ('Professional Info', {'fields': ('role', 'clinic')}),
+        ('專業資訊', {'fields': ('role', 'clinic')}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Professional Info', {'fields': ('role', 'clinic')}),
+        ('專業資訊', {'fields': ('role', 'clinic')}),
     )
     search_fields = ('username', 'first_name', 'last_name', 'email', 'clinic__name')
 
