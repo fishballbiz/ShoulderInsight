@@ -1,0 +1,93 @@
+{% extends 'diagnosis/base.html' %}
+
+{% block title %}診斷結果 - 智慧肩部復健 AI 診斷平台{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">診斷結果</h1>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">檢查資訊</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>檢查 ID:</strong> {{ examination.id }}</p>
+                            <p><strong>病患姓名:</strong> {{ examination.patient.name }}</p>
+                            <p><strong>檢查時間:</strong> {{ examination.created_at|date:"Y-m-d H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>狀態:</strong>
+                                <span class="badge bg-success">{{ examination.get_status_display }}</span>
+                            </p>
+                            {% if examination.therapist %}
+                            <p><strong>治療師:</strong> {{ examination.therapist.username }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">上傳的圖片</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for image in examination.images.all %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <img src="{{ image.image.url }}" class="card-img-top"
+                                    alt="{{ image.get_slot_type_display }}">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ image.get_slot_type_display }}</h6>
+                                    <p class="card-text small text-muted">
+                                        上傳時間: {{ image.uploaded_at|date:"Y-m-d H:i" }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted">無上傳圖片</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if examination.diagnosis %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">AI 診斷結果</h5>
+                </div>
+                <div class="card-body">
+                    <h6>臨床摘要</h6>
+                    <p>{{ examination.diagnosis.clinical_summary|default:"尚未生成診斷摘要" }}</p>
+
+                    <h6 class="mt-4">風險評估</h6>
+                    <pre class="bg-light p-3 rounded">{{ examination.diagnosis.risk_assessment|default:"{}" }}</pre>
+
+                    <p class="text-muted small mt-3">
+                        診斷生成時間: {{ examination.diagnosis.created_at|date:"Y-m-d H:i" }}
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <strong>注意:</strong> AI 診斷尚未完成。請稍後再查看。
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="{% url 'diagnosis:upload' %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> 返回上傳頁面
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

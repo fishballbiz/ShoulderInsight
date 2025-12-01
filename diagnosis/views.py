@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Patient, Examination, Image
 
@@ -21,7 +21,7 @@ def upload_view(request):
         examination = Examination.objects.create(
             patient=patient,
             therapist=None,  # TODO: Set to request.user when auth is ready
-            status='PENDING'
+            status='PROCESSING'
         )
         
         # Handle uploaded images
@@ -47,8 +47,26 @@ def upload_view(request):
             examination.delete()
             return redirect('diagnosis:upload')
         
-        messages.success(request, f'成功上傳 {uploaded_count} 張圖片！檢查 ID: {examination.id}')
-        # TODO: Redirect to result page when implemented
-        return redirect('diagnosis:upload')
+        # Redirect to analyzing page
+        return redirect('diagnosis:analyzing', examination_id=examination.id)
     
     return render(request, 'diagnosis/upload.html')
+
+def analyzing_view(request, examination_id):
+    """
+    Analyzing page with loading animation.
+    """
+    examination = get_object_or_404(Examination, id=examination_id)
+    return render(request, 'diagnosis/analyzing.html', {
+        'examination': examination,
+        'examination_id': examination_id
+    })
+
+def result_view(request, examination_id):
+    """
+    Result page showing examination details and diagnosis.
+    """
+    examination = get_object_or_404(Examination, id=examination_id)
+    return render(request, 'diagnosis/result.html', {
+        'examination': examination
+    })
