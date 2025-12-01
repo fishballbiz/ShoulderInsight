@@ -64,7 +64,7 @@ def analyzing_view(request, examination_id):
         'examination_id': examination_id
     })
 
-def result_view(request, uuid):
+def result_view(request, examination_id):
     # Mock data for demonstration
     mock_data = {
         'patient': {
@@ -95,4 +95,4 @@ def result_view(request, uuid):
             ]
         }
     }
-    return render(request, 'diagnosis/result.html', {'uuid': uuid, 'data': mock_data})
+    return render(request, 'diagnosis/result.html', {'examination_id': examination_id, 'data': mock_data})
