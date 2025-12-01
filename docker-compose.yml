@@ -17,6 +17,7 @@ services:
     command: daphne -b 0.0.0.0 -p 8000 config.asgi:application
     volumes:
       - .:/app
+      - media_data:/media
     ports:
       - "8000:8000"
     depends_on:
@@ -33,3 +34,4 @@ services:
 
 volumes:
   postgres_data:
+  media_data:

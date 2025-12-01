@@ -1,0 +1,236 @@
+{% extends 'diagnosis/base.html' %}
+
+{% block title %}上傳檢查圖片 - 智慧肩部復健 AI 診斷平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dropzone {
+        border: 3px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 40px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+        min-height: 250px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .dropzone:hover {
+        border-color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+
+    .dropzone.dragover {
+        border-color: #0d6efd;
+        background-color: #cfe2ff;
+    }
+
+    .dropzone.has-file {
+        border-color: #198754;
+        background-color: #d1e7dd;
+    }
+
+    .preview-container {
+        margin-top: 15px;
+        max-width: 100%;
+    }
+
+    .preview-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .slot-card {
+        margin-bottom: 30px;
+    }
+
+    .slot-title {
+        color: #0d6efd;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .loading-overlay.active {
+        display: flex;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">上傳檢查圖片</h1>
+        <p class="text-muted">請上傳病患的復健 App 截圖，系統將自動分析並生成診斷報告。</p>
+    </div>
+</div>
+
+<form id="uploadForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <label for="patient_name" class="form-label">病患姓名 *</label>
+            <input type="text" class="form-control" id="patient_name" name="patient_name" required>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Slot A -->
+        <div class="col-md-4 slot-card">
+            <h5 class="slot-title">Slot A: 基本資料/訓練量</h5>
+            <p class="text-muted small">上傳包含訓練次數、日期等基本資訊的截圖</p>
+            <div class="dropzone" id="dropzone-a" data-slot="SLOT_A">
+                <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                <p class="mb-0 mt-2">點擊或拖曳圖片至此</p>
+                <p class="small text-muted">支援 JPG, PNG</p>
+                <input type="file" id="file-a" name="slot_a" accept="image/*" style="display: none;">
+                <div class="preview-container" id="preview-a"></div>
+            </div>
+        </div>
+
+        <!-- Slot B -->
+        <div class="col-md-4 slot-card">
+            <h5 class="slot-title">Slot B: 軌跡與熱圖</h5>
+            <p class="text-muted small">上傳包含疼痛熱圖和動作軌跡的截圖</p>
+            <div class="dropzone" id="dropzone-b" data-slot="SLOT_B">
+                <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                <p class="mb-0 mt-2">點擊或拖曳圖片至此</p>
+                <p class="small text-muted">支援 JPG, PNG</p>
+                <input type="file" id="file-b" name="slot_b" accept="image/*" style="display: none;">
+                <div class="preview-container" id="preview-b"></div>
+            </div>
+        </div>
+
+        <!-- Slot C -->
+        <div class="col-md-4 slot-card">
+            <h5 class="slot-title">Slot C: 綜合分析</h5>
+            <p class="text-muted small">上傳包含左右對比或綜合分析的截圖</p>
+            <div class="dropzone" id="dropzone-c" data-slot="SLOT_C">
+                <i class="bi bi-cloud-upload fs-1 text-muted"></i>
+                <p class="mb-0 mt-2">點擊或拖曳圖片至此</p>
+                <p class="small text-muted">支援 JPG, PNG</p>
+                <input type="file" id="file-c" name="slot_c" accept="image/*" style="display: none;">
+                <div class="preview-container" id="preview-c"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                <i class="bi bi-upload me-2"></i>開始分析
+            </button>
+        </div>
+    </div>
+</form>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="text-center text-white">
+        <div class="spinner-border" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">處理中...</span>
+        </div>
+        <p class="mt-3 fs-5">AI 正在分析圖片，請稍候...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const slots = ['a', 'b', 'c'];
+
+        slots.forEach(slot => {
+            const dropzone = document.getElementById(`dropzone-${slot}`);
+            const fileInput = document.getElementById(`file-${slot}`);
+            const preview = document.getElementById(`preview-${slot}`);
+
+            // Click to upload
+            dropzone.addEventListener('click', () => fileInput.click());
+
+            // File input change
+            fileInput.addEventListener('change', function (e) {
+                handleFile(this.files[0], dropzone, preview);
+            });
+
+            // Drag and drop
+            dropzone.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+
+            dropzone.addEventListener('dragleave', function (e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+
+            dropzone.addEventListener('drop', function (e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFile(file, dropzone, preview);
+                }
+            });
+        });
+
+        function handleFile(file, dropzone, preview) {
+            if (!file) return;
+
+            dropzone.classList.add('has-file');
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.innerHTML = `
+                <img src="${e.target.result}" class="preview-image" alt="預覽圖">
+                <p class="small text-success mt-2 mb-0"><i class="bi bi-check-circle"></i> ${file.name}</p>
+            `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Form submission
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const patientName = document.getElementById('patient_name').value;
+            if (!patientName.trim()) {
+                alert('請輸入病患姓名');
+                return;
+            }
+
+            // Check if at least one file is uploaded
+            const hasFile = slots.some(slot => document.getElementById(`file-${slot}`).files.length > 0);
+            if (!hasFile) {
+                alert('請至少上傳一張圖片');
+                return;
+            }
+
+            // Show loading overlay
+            document.getElementById('loadingOverlay').classList.add('active');
+
+            // Submit form
+            this.submit();
+        });
+    });
+</script>
+{% endblock %}

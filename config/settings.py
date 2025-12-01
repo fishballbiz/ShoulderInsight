@@ -129,6 +129,16 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Media files (uploaded images)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/media'  # Docker volume mounted at /media
+
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 20971520  # 20MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 20971520  # 20MB
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

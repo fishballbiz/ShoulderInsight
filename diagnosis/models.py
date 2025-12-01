@@ -1,6 +1,18 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 import uuid
+import os
+
+def image_upload_path(instance, filename):
+    """
+    Generate upload path with UUID filename.
+    Format: uploads/YYYY/MM/DD/uuid.ext
+    """
+    ext = os.path.splitext(filename)[1]
+    new_filename = f"{uuid.uuid4()}{ext}"
+    now = timezone.now()
+    return f"uploads/{now.strftime('%Y/%m/%d')}/{new_filename}"
 
 class Patient(models.Model):
     """
@@ -31,7 +43,7 @@ class Examination(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name='檢查ID')
-    therapist = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='examinations', verbose_name='治療師')
+    therapist = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='examinations', verbose_name='治療師', null=True, blank=True)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='examinations', verbose_name='病患')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='檢查時間')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name='狀態')
@@ -54,7 +66,7 @@ class Image(models.Model):
     ]
 
     examination = models.ForeignKey(Examination, on_delete=models.CASCADE, related_name='images', verbose_name='檢查')
-    image = models.ImageField(upload_to='uploads/%Y/%m/%d/', verbose_name='圖片')
+    image = models.ImageField(upload_to=image_upload_path, verbose_name='圖片')
     slot_type = models.CharField(max_length=10, choices=SLOT_CHOICES, verbose_name='圖片類型')
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='上傳時間')
 
