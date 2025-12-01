@@ -1,93 +1,299 @@
 {% extends 'diagnosis/base.html' %}
+{% load static %}
 
-{% block title %}診斷結果 - 智慧肩部復健 AI 診斷平台{% endblock %}
+{% block title %}AI 診斷結果 - 智慧肩部復健 AI 診斷平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #0a192f 0%, #112240 25%, #1a365d 50%, #2d4a6e 75%, #3d5a80 100%);
+        color: #e6f1ff;
+        min-height: 100vh;
+    }
+
+    .result-container {
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .section-title {
+        color: #64ffda;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .patient-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .info-item label {
+        display: block;
+        color: #8892b0;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    .info-item span {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #ccd6f6;
+    }
+
+    .risk-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.2rem;
+        background: rgba(255, 77, 77, 0.2);
+        color: #ff4d4d;
+        border: 1px solid rgba(255, 77, 77, 0.5);
+        box-shadow: 0 0 15px rgba(255, 77, 77, 0.3);
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .metric-card {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    .metric-name {
+        color: #8892b0;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #e6f1ff;
+        margin-bottom: 5px;
+    }
+
+    .metric-status {
+        font-size: 0.85rem;
+        padding: 4px 10px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+    .status-Critical {
+        color: #ff4d4d;
+        background: rgba(255, 77, 77, 0.1);
+    }
+
+    .status-Warning {
+        color: #ffd700;
+        background: rgba(255, 215, 0, 0.1);
+    }
+
+    .status-Good {
+        color: #64ffda;
+        background: rgba(100, 255, 218, 0.1);
+    }
+
+    .ai-summary-text {
+        line-height: 1.8;
+        color: #ccd6f6;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+
+    .recommendation-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .recommendation-list li {
+        position: relative;
+        padding-left: 30px;
+        margin-bottom: 15px;
+        color: #ccd6f6;
+        line-height: 1.6;
+    }
+
+    .recommendation-list li::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: #64ffda;
+        font-weight: bold;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 40px;
+    }
+
+    .btn-primary-glow {
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        border: none;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 30px rgba(79, 172, 254, 0.6);
+        color: white;
+    }
+
+    .btn-secondary-glass {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-secondary-glass:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mb-4">診斷結果</h1>
-
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">檢查資訊</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>檢查 ID:</strong> {{ examination.id }}</p>
-                            <p><strong>病患姓名:</strong> {{ examination.patient.name }}</p>
-                            <p><strong>檢查時間:</strong> {{ examination.created_at|date:"Y-m-d H:i" }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>狀態:</strong>
-                                <span class="badge bg-success">{{ examination.get_status_display }}</span>
-                            </p>
-                            {% if examination.therapist %}
-                            <p><strong>治療師:</strong> {{ examination.therapist.username }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+<div class="result-container">
+    <!-- Header Section -->
+    <div class="glass-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-2" style="font-weight: 700;">AI 診斷報告</h1>
+                <p class="mb-0" style="color: #8892b0;">報告編號: {{ uuid }}</p>
             </div>
-
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">上傳的圖片</h5>
+            <div class="text-end">
+                <div class="risk-badge"
+                    style="color: {{ data.risk_assessment.color }}; border-color: {{ data.risk_assessment.color }}; background: {{ data.risk_assessment.color }}20; box-shadow: 0 0 15px {{ data.risk_assessment.color }}40;">
+                    {{ data.risk_assessment.label }} ({{ data.risk_assessment.score }})
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for image in examination.images.all %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
-                                <img src="{{ image.image.url }}" class="card-img-top"
-                                    alt="{{ image.get_slot_type_display }}">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ image.get_slot_type_display }}</h6>
-                                    <p class="card-text small text-muted">
-                                        上傳時間: {{ image.uploaded_at|date:"Y-m-d H:i" }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        {% empty %}
-                        <div class="col-12">
-                            <p class="text-muted">無上傳圖片</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            {% if examination.diagnosis %}
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">AI 診斷結果</h5>
-                </div>
-                <div class="card-body">
-                    <h6>臨床摘要</h6>
-                    <p>{{ examination.diagnosis.clinical_summary|default:"尚未生成診斷摘要" }}</p>
-
-                    <h6 class="mt-4">風險評估</h6>
-                    <pre class="bg-light p-3 rounded">{{ examination.diagnosis.risk_assessment|default:"{}" }}</pre>
-
-                    <p class="text-muted small mt-3">
-                        診斷生成時間: {{ examination.diagnosis.created_at|date:"Y-m-d H:i" }}
-                    </p>
-                </div>
-            </div>
-            {% else %}
-            <div class="alert alert-warning">
-                <strong>注意:</strong> AI 診斷尚未完成。請稍後再查看。
-            </div>
-            {% endif %}
-
-            <div class="mt-4">
-                <a href="{% url 'diagnosis:upload' %}" class="btn btn-primary">
-                    <i class="bi bi-arrow-left"></i> 返回上傳頁面
-                </a>
             </div>
         </div>
+    </div>
+
+    <!-- Patient Info -->
+    <div class="glass-card">
+        <div class="section-title">
+            <i class="bi bi-person-badge"></i> 患者資訊
+        </div>
+        <div class="patient-info-grid">
+            <div class="info-item">
+                <label>姓名</label>
+                <span>{{ data.patient.name }}</span>
+            </div>
+            <div class="info-item">
+                <label>病歷號</label>
+                <span>{{ data.patient.id }}</span>
+            </div>
+            <div class="info-item">
+                <label>年齡/性別</label>
+                <span>{{ data.patient.age }}歲 / {{ data.patient.gender }}</span>
+            </div>
+            <div class="info-item">
+                <label>診斷日期</label>
+                <span>{{ data.patient.date }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="glass-card">
+        <div class="section-title">
+            <i class="bi bi-graph-up"></i> 關鍵指標分析
+        </div>
+        <div class="metrics-grid">
+            {% for metric in data.metrics %}
+            <div class="metric-card">
+                <div class="metric-name">{{ metric.name }}</div>
+                <div class="metric-value">{{ metric.value }}</div>
+                <div class="metric-status status-{{ metric.status }}">
+                    {{ metric.status }}
+                    {% if metric.trend == 'up' %}
+                    <i class="bi bi-arrow-up-short"></i>
+                    {% elif metric.trend == 'down' %}
+                    <i class="bi bi-arrow-down-short"></i>
+                    {% else %}
+                    <i class="bi bi-dash"></i>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- AI Analysis -->
+    <div class="glass-card">
+        <div class="section-title">
+            <i class="bi bi-robot"></i> AI 綜合評估
+        </div>
+        <div class="ai-summary-text">
+            {{ data.ai_analysis.summary }}
+        </div>
+        <div class="mt-4">
+            <h5 style="color: #64ffda; margin-bottom: 15px;">建議處方：</h5>
+            <ul class="recommendation-list">
+                {% for rec in data.ai_analysis.recommendations %}
+                <li>{{ rec }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-buttons">
+        <a href="{% url 'diagnosis:upload' %}" class="btn-secondary-glass">
+            <i class="bi bi-arrow-left"></i> 返回首頁
+        </a>
+        <a href="#" class="btn-primary-glow">
+            <i class="bi bi-file-earmark-pdf"></i> 下載完整報告
+        </a>
     </div>
 </div>
 {% endblock %}
