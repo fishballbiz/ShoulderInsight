@@ -5,6 +5,11 @@
 COMPOSE_FILE="docker-compose.yml"
 SERVICE_NAME="web"
 
+GCP_PROJECT="aishoulder"
+GCP_REGION="asia-east1"
+IMAGE_NAME="aishoulder"
+REGISTRY="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${IMAGE_NAME}/${IMAGE_NAME}"
+
 function show_help {
     echo "Usage: ./dc [command]"
     echo "Commands:"
@@ -14,6 +19,7 @@ function show_help {
     echo "  down            Stop services"
     echo "  logs            View logs"
     echo "  manage [args]   Run python manage.py [args]"
+    echo "  publish         Deploy to GCP Cloud Run"
     echo "  help            Show this help message"
 }
 
@@ -36,7 +42,7 @@ case "$1" in
         docker-compose -f $COMPOSE_FILE run --rm --service-ports $SERVICE_NAME bash
         ;;
     "up")
-        docker-compose -f $COMPOSE_FILE up
+        docker-compose -f $COMPOSE_FILE up -d
         ;;
     "down")
         docker-compose -f $COMPOSE_FILE down
@@ -47,6 +53,61 @@ case "$1" in
     "manage")
         shift
         docker-compose -f $COMPOSE_FILE run --rm $SERVICE_NAME python manage.py "$@"
+        ;;
+    "publish")
+        # Check GCP account
+        CURRENT_ACCOUNT=$(gcloud config get-value account 2>/dev/null)
+        EXPECTED_ACCOUNT="fishbudin@gmail.com"
+        if [ "$CURRENT_ACCOUNT" != "$EXPECTED_ACCOUNT" ]; then
+            echo "Error: Wrong GCP account. Expected $EXPECTED_ACCOUNT, got $CURRENT_ACCOUNT"
+            echo "Run: gcloud config set account $EXPECTED_ACCOUNT"
+            exit 1
+        fi
+        echo "Using GCP account: $CURRENT_ACCOUNT"
+
+        # Set project
+        gcloud config set project $GCP_PROJECT
+
+        # Create Artifact Registry repository if not exists
+        gcloud artifacts repositories describe $IMAGE_NAME \
+            --location=$GCP_REGION 2>/dev/null || \
+        gcloud artifacts repositories create $IMAGE_NAME \
+            --repository-format=docker \
+            --location=$GCP_REGION
+
+        # Build and push image
+        echo "Building and pushing image..."
+        docker build --platform linux/amd64 -t $REGISTRY:latest .
+        docker push $REGISTRY:latest
+
+        # Deploy to Cloud Run with minimal resources
+        echo "Deploying to Cloud Run..."
+        gcloud run deploy $IMAGE_NAME \
+            --image=$REGISTRY:latest \
+            --platform=managed \
+            --region=$GCP_REGION \
+            --allow-unauthenticated \
+            --min-instances=0 \
+            --max-instances=1 \
+            --memory=256Mi \
+            --cpu=1 \
+            --concurrency=10 \
+            --timeout=60
+
+        # Clean up old images (keep only latest)
+        echo "Cleaning up old images..."
+        gcloud artifacts docker images list $REGISTRY \
+            --include-tags \
+            --format="get(version)" \
+            --filter="NOT tags:latest" | \
+        while read -r digest; do
+            if [ -n "$digest" ]; then
+                gcloud artifacts docker images delete "${REGISTRY}@${digest}" --quiet 2>/dev/null || true
+            fi
+        done
+
+        echo "Deployment complete!"
+        gcloud run services describe $IMAGE_NAME --region=$GCP_REGION --format="value(status.url)"
         ;;
     *)
         # Pass through other commands to docker-compose

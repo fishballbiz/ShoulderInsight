@@ -1,4 +1,5 @@
 {% extends 'diagnosis/base.html' %}
+{% load static %}
 
 {% block title %}AI 分析結果 - 智慧肩部復健 AI 診斷平台{% endblock %}
 
@@ -29,9 +30,26 @@
         margin-bottom: 8px;
     }
 
-    .header-card p {
-        opacity: 0.85;
-        margin: 0;
+    .header-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 12px;
+        font-size: 0.95rem;
+    }
+
+    .header-info-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 6px 12px;
+        border-radius: 20px;
+    }
+
+    .operator-badge {
+        background: rgba(255, 255, 255, 0.25);
+        font-weight: 600;
     }
 
     .section-title {
@@ -88,94 +106,152 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 8px 16px;
+        padding: 10px 18px;
         border-radius: 50px;
         font-weight: 600;
-        font-size: 0.9rem;
-        background: rgba(72, 187, 120, 0.15);
-        color: #276749;
-        border: 1px solid rgba(72, 187, 120, 0.3);
+        font-size: 0.95rem;
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
     }
 
     .failed-badge {
-        background: rgba(229, 62, 62, 0.1);
-        color: #c53030;
-        border-color: rgba(229, 62, 62, 0.3);
+        background: linear-gradient(135deg, #fc8181, #e53e3e);
+        box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+    }
+
+    .grid-wrapper {
+        background: var(--bg-light);
+        padding: 20px;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .grid-container {
         display: grid;
         grid-template-columns: repeat(9, 1fr);
         gap: 4px;
-        max-width: 360px;
-        margin: 20px auto;
-        background: var(--bg-light);
-        padding: 12px;
-        border-radius: 12px;
+        width: 100%;
+        max-width: 320px;
     }
 
     .grid-cell {
         aspect-ratio: 1;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        font-weight: 600;
+        border-radius: 50%;
         background: #e2e8f0;
-        border: 1px solid #cbd5e0;
-        transition: transform 0.2s ease;
+        border: 2px solid #cbd5e0;
     }
 
     .grid-cell.GREEN {
         background: linear-gradient(135deg, #48bb78, #68d391);
         border-color: #38a169;
     }
+
     .grid-cell.CYAN {
         background: linear-gradient(135deg, #4299e1, #63b3ed);
         border-color: #3182ce;
     }
-    .grid-cell.size-0 { transform: scale(0.65); opacity: 0.7; }
-    .grid-cell.size-1 { transform: scale(1); }
+
+    .grid-cell.size-0 {
+        transform: scale(0.5);
+    }
+
+    .grid-cell.size-1 {
+        transform: scale(0.9);
+    }
 
     .grid-legend {
         display: flex;
         justify-content: center;
-        gap: 20px;
-        margin-top: 16px;
+        gap: 24px;
+        margin-top: 20px;
         flex-wrap: wrap;
     }
 
     .legend-item {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 0.85rem;
-        color: var(--text-muted);
+        gap: 8px;
+        font-size: 0.9rem;
+        color: var(--text-dark);
     }
 
     .legend-dot {
-        width: 12px;
-        height: 12px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
     }
 
-    .legend-dot.green { background: #48bb78; }
-    .legend-dot.cyan { background: #4299e1; }
+    .legend-dot.green {
+        background: linear-gradient(135deg, #48bb78, #68d391);
+    }
+
+    .legend-dot.cyan {
+        background: linear-gradient(135deg, #4299e1, #63b3ed);
+    }
+
+    .legend-dot.small {
+        width: 10px;
+        height: 10px;
+        background: #a0aec0;
+    }
+
+    .legend-dot.large {
+        width: 16px;
+        height: 16px;
+        background: #718096;
+    }
+
+    .debug-section {
+        text-align: right;
+        margin-top: 40px;
+        padding-right: 20px;
+    }
+
+    .debug-toggle {
+        color: #cbd5e0;
+        font-size: 0.75rem;
+        font-family: monospace;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.2s ease;
+        padding: 4px;
+    }
+
+    .debug-toggle:hover {
+        color: var(--text-muted);
+    }
+
+    .debug-toggle.expanded {
+        color: var(--primary-light);
+    }
+
+    .debug-content {
+        display: none;
+        margin-top: 12px;
+        text-align: left;
+    }
+
+    .debug-content.show {
+        display: block;
+    }
 
     .raw-data-container {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
+        background: #1a202c;
+        border-radius: 8px;
         padding: 16px;
         overflow-x: auto;
         max-height: 300px;
         overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
 
     .raw-data-container pre {
-        color: var(--text-muted);
-        font-size: 0.8rem;
+        color: #a0aec0;
+        font-size: 0.75rem;
         margin: 0;
         white-space: pre-wrap;
         word-wrap: break-word;
@@ -234,33 +310,28 @@
         background: rgba(66, 153, 225, 0.05);
         color: var(--primary-color);
     }
-
-    .operator-footer {
-        text-align: center;
-        padding: 20px;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-    }
-
-    .operator-footer strong {
-        color: var(--text-dark);
-    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="result-container">
-    <!-- Header -->
+    <!-- Header with Operator Info -->
     <div class="card header-card">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
                 <h1>
                     <i class="bi bi-clipboard2-data me-2"></i>AI 分析結果
                 </h1>
-                <p>
-                    <i class="bi bi-file-earmark-text me-1"></i>
-                    報告編號: {{ examination_id|truncatechars:12 }}
-                </p>
+                <div class="header-info">
+                    <div class="header-info-item operator-badge">
+                        <i class="bi bi-person-fill"></i>
+                        <span>分析師: {{ operator_name }}</span>
+                    </div>
+                    <div class="header-info-item">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span>{{ examination_id|truncatechars:12 }}</span>
+                    </div>
+                </div>
             </div>
             <div>
                 {% if has_error %}
@@ -316,52 +387,36 @@
     </div>
 
     <!-- Grid Visualization -->
-    {% if raw_data.grid_color %}
     <div class="card">
         <div class="section-title">
             <i class="bi bi-grid-3x3"></i> 9×9 網格分析
         </div>
-        <div class="grid-container" id="gridDisplay">
-            <!-- Grid will be rendered by JavaScript -->
-        </div>
-        <div class="grid-legend">
-            <div class="legend-item">
-                <span class="legend-dot green"></span>
-                <span>GREEN</span>
+        <div class="grid-wrapper">
+            <div class="grid-container" id="gridDisplay">
+                <!-- Grid cells rendered by JavaScript -->
             </div>
-            <div class="legend-item">
-                <span class="legend-dot cyan"></span>
-                <span>CYAN</span>
-            </div>
-            <div class="legend-item">
-                <i class="bi bi-circle-fill" style="font-size: 0.7rem;"></i>
-                <span>大圓 = 主要區域</span>
-            </div>
-            <div class="legend-item">
-                <i class="bi bi-circle" style="font-size: 0.6rem;"></i>
-                <span>小圓 = 次要區域</span>
+            <div class="grid-legend">
+                <div class="legend-item">
+                    <span class="legend-dot green"></span>
+                    <span>GREEN</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot cyan"></span>
+                    <span>CYAN</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot large"></span>
+                    <span>主要</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot small"></span>
+                    <span>次要</span>
+                </div>
             </div>
         </div>
     </div>
+
     {% endif %}
-
-    {% endif %}
-
-    <!-- Raw Data (Debug) -->
-    <div class="card">
-        <div class="section-title">
-            <i class="bi bi-code-slash"></i> 原始 JSON 資料
-        </div>
-        <div class="raw-data-container">
-            <pre id="rawDataPre">{{ raw_data|safe }}</pre>
-        </div>
-    </div>
-
-    <!-- Operator Footer -->
-    <div class="operator-footer">
-        <i class="bi bi-person-circle me-1"></i>
-        操作者: <strong>{{ operator_name }}</strong>
-    </div>
 
     <!-- Actions -->
     <div class="action-buttons">
@@ -372,42 +427,92 @@
             <i class="bi bi-house"></i> 返回首頁
         </a>
     </div>
+
+    <!-- Debug Section (Collapsible) -->
+    <div class="debug-section">
+        <span class="debug-toggle" id="debugToggle" title="開發者調試資訊">&lt;/&gt;</span>
+        <div class="debug-content" id="debugContent">
+            <div class="raw-data-container">
+                <pre id="rawDataPre">{{ raw_data|safe }}</pre>
+            </div>
+        </div>
+    </div>
 </div>
+
+{{ raw_data|json_script:"rawDataJson" }}
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Debug toggle
+    const debugToggle = document.getElementById('debugToggle');
+    const debugContent = document.getElementById('debugContent');
+
+    debugToggle.addEventListener('click', function() {
+        debugToggle.classList.toggle('expanded');
+        debugContent.classList.toggle('show');
+    });
+
+    // Parse and display data
     const rawDataPre = document.getElementById('rawDataPre');
-    try {
-        const rawText = rawDataPre.textContent;
-        const jsonText = rawText
-            .replace(/'/g, '"')
-            .replace(/None/g, 'null')
-            .replace(/True/g, 'true')
-            .replace(/False/g, 'false');
-        const data = JSON.parse(jsonText);
+    const gridContainer = document.getElementById('gridDisplay');
+
+    let data = null;
+
+    // Try to get data from json_script first
+    const jsonScriptEl = document.getElementById('rawDataJson');
+    if (jsonScriptEl) {
+        try {
+            data = JSON.parse(jsonScriptEl.textContent);
+        } catch (e) {
+            console.log('Could not parse json_script:', e);
+        }
+    }
+
+    // Fallback: parse from pre element
+    if (!data) {
+        try {
+            const rawText = rawDataPre.textContent;
+            const jsonText = rawText
+                .replace(/'/g, '"')
+                .replace(/None/g, 'null')
+                .replace(/True/g, 'true')
+                .replace(/False/g, 'false');
+            data = JSON.parse(jsonText);
+        } catch (e) {
+            console.log('Could not parse raw data:', e);
+        }
+    }
+
+    if (data) {
+        // Format JSON display
         rawDataPre.textContent = JSON.stringify(data, null, 2);
 
-        const gridContainer = document.getElementById('gridDisplay');
-        if (gridContainer && data.grid_color && data.grid_size) {
+        // Render 9x9 grid
+        if (gridContainer) {
             gridContainer.innerHTML = '';
+            const gridColor = data.grid_color || [];
+            const gridSize = data.grid_size || [];
+
             for (let i = 0; i < 81; i++) {
                 const cell = document.createElement('div');
                 cell.className = 'grid-cell';
-                const color = data.grid_color[i];
-                const size = data.grid_size[i];
+
+                const color = gridColor[i];
+                const size = gridSize[i];
+
                 if (color) {
                     cell.classList.add(color);
-                    if (size !== null) {
-                        cell.classList.add('size-' + size);
-                    }
                 }
+
+                if (size !== null && size !== undefined) {
+                    cell.classList.add('size-' + size);
+                }
+
                 gridContainer.appendChild(cell);
             }
         }
-    } catch (e) {
-        console.log('Could not parse raw data as JSON:', e);
     }
 });
 </script>
