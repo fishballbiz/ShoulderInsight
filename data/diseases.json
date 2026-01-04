@@ -1,0 +1,145 @@
+[
+  {
+    "id": 1,
+    "name_zh": "肩峰下滑囊炎",
+    "name_en": "Subacromial Bursitis",
+    "symptoms": [
+      "抬手出現痛弧 (60-120°)",
+      "夜間痛、側睡更痛",
+      "肩峰下壓痛明顯",
+      "痠脹、擴散性疼痛"
+    ],
+    "grid_letter": [null, null, null, "C", "C", "C", "C", "C", "C", null, null, null, "C", "C", "C", "C", "C", "C", null, null, null, "C", "C", "C", "C", "C", "C", null, null, null, null, null, null, null, "C", "C", null, null, null, null, null, null, "W", "W", "W", null, null, null, null, null, null, "W", "W", null, null, null, null, null, null, "W", "W", "W", null, null, null, null, null, null, "W", "W", "W", null, null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, null, "BLACK", "BLACK", "BLACK", "RED", "RED", "RED", null, null, null, "BLACK", "BLACK", "BLACK", "RED", "RED", "RED", null, null, null, "BLACK", "BLACK", "BLACK", "RED", "RED", "RED", null, null, null, null, null, null, null, "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "YELLOW", null, null, null, null, null, null, "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 2,
+    "name_zh": "肩夾擠症候群",
+    "name_en": "Shoulder Impingement Syndrome",
+    "symptoms": [
+      "手舉到特定角度強烈「夾痛」",
+      "上臂外側放射痛",
+      "舉手、放下手臂更痛",
+      "重複使用後加劇 (如投球)"
+    ],
+    "grid_letter": [null, null, null, null, null, null, "C", "C", "C", null, null, null, null, null, null, "C", "C", "C", null, null, null, null, null, null, "C", "C", "C", null, null, null, null, null, null, "C", "C", "C", null, null, null, null, null, null, "C", "C", "C", null, null, null, null, null, null, "W", "W", "C", null, null, null, null, null, null, null, "W", "C", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, null, null, null, null, "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, "YELLOW", "YELLOW", "YELLOW", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "BLUE", "BLUE", "RED", null, null, null, null, null, null, null, "BLUE", "YELLOW", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 3,
+    "name_zh": "鈣化性肌腱炎",
+    "name_en": "Calcific Tendonitis",
+    "symptoms": [
+      "突發劇烈肩痛",
+      "夜間痛非常嚴重",
+      "手臂難以移動、僵硬感",
+      "局部觸壓極度敏感"
+    ],
+    "grid_letter": [null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, "I", "I", "I", "I", null, null, null, null, null, "I", "I", "I", "I", null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "RED", "RED", null, null, null, null, null, "BLUE", "BLUE", "YELLOW", "YELLOW", null, null, null, null, null, "BLUE", "BLUE", "YELLOW", "YELLOW", null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 4,
+    "name_zh": "肱二頭肌長頭肌腱滑膜炎",
+    "name_en": "Biceps Long Head Tenosynovitis",
+    "symptoms": [
+      "上臂前側疼痛 (溝槽區)",
+      "提物、前舉時加重",
+      "局部壓痛",
+      "可能合併肩夾擠疼痛"
+    ],
+    "grid_letter": [null, null, null, null, null, "S", "S", "S", null, null, null, null, "C", null, "S", "S", "S", "I", null, null, "C", null, null, null, null, null, "I", null, null, "C", null, null, null, null, null, null, null, "C", null, null, null, null, null, null, null, null, "C", "C", null, null, null, null, null, null, null, null, "C", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, null, null, null, "YELLOW", "BLUE", "BLUE", null, null, null, null, "BLUE", null, "BLUE", "BLUE", "BLUE", "BLUE", null, null, "YELLOW", null, null, null, null, null, "BLUE", null, null, "YELLOW", null, null, null, null, null, null, null, "YELLOW", null, null, null, null, null, null, null, null, "YELLOW", "YELLOW", null, null, null, null, null, null, null, null, "YELLOW", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 5,
+    "name_zh": "肩峰骨刺",
+    "name_en": "Acromial Bone Spur",
+    "symptoms": [
+      "抬高手臂時卡卡、疼痛",
+      "反覆夾擠症狀",
+      "肩外側疼痛",
+      "可能造成旋轉肌腱磨損"
+    ],
+    "grid_letter": [null, null, "C", "C", "C", "C", "C", "I", "I", null, null, "C", "C", "C", "C", "C", "I", "I", null, null, "C", null, "C", "C", "C", "I", "I", null, null, null, null, null, "C", "C", "I", "I", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, "YELLOW", "RED", "RED", "RED", "YELLOW", "YELLOW", "YELLOW", null, null, "YELLOW", "RED", "RED", "RED", "YELLOW", "YELLOW", "YELLOW", null, null, "YELLOW", null, "RED", "YELLOW", "BLUE", "BLUE", "BLUE", null, null, null, null, null, "YELLOW", "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 6,
+    "name_zh": "喙肱韌帶增厚",
+    "name_en": "Coracohumeral Ligament Thickening",
+    "symptoms": [
+      "肩前方深層疼痛",
+      "外旋受限 (手往外轉困難)",
+      "抬手高度下降",
+      "常與冰凍肩前期相關"
+    ],
+    "grid_letter": [null, null, null, null, "C", "S", "S", null, null, null, null, null, "C", "C", "S", "S", "S", null, null, null, "C", null, null, null, null, null, null, null, "C", "C", null, null, null, null, null, null, null, "C", "C", null, null, null, null, null, null, null, "C", "C", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, null, null, "BLUE", "BLUE", "BLUE", null, null, null, null, null, "BLUE", "BLUE", "BLUE", "BLUE", "BLUE", null, null, null, "YELLOW", null, null, null, null, null, null, null, "RED", "RED", null, null, null, null, null, null, null, "RED", "RED", null, null, null, null, null, null, null, "YELLOW", "YELLOW", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 7,
+    "name_zh": "肩關節上韌帶增厚",
+    "name_en": "Superior Glenohumeral Ligament Thickening",
+    "symptoms": [
+      "肩部前上方疼痛",
+      "外旋不順、受限",
+      "抬手末端疼痛",
+      "可能與關節不穩有關"
+    ],
+    "grid_letter": [null, null, null, null, null, "S", "S", "S", "S", null, null, null, null, null, null, "S", "S", "S", null, "I", "I", null, null, null, null, "S", "S", null, "I", "I", null, null, null, null, null, "S", null, "I", "I", null, null, null, null, "S", "S", null, "I", "I", null, null, null, null, "W", "S", null, null, null, null, null, null, "W", "W", "S", null, null, null, null, null, null, "W", "W", "S", null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, null, null, null, "RED", "RED", "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, "BLUE", "BLUE", null, null, null, null, "YELLOW", "YELLOW", null, "BLUE", "BLUE", null, null, null, null, null, "YELLOW", null, "BLUE", "BLUE", null, null, null, null, "BLUE", "YELLOW", null, "BLUE", "BLUE", null, null, null, null, "YELLOW", "YELLOW", null, null, null, null, null, null, "BLUE", "BLUE", "YELLOW", null, null, null, null, null, null, "BLUE", "BLUE", "YELLOW", null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 8,
+    "name_zh": "肱二頭肌短頭拉傷",
+    "name_en": "Biceps Brachii Short Head Strain",
+    "symptoms": [
+      "上臂內側或前側疼痛",
+      "用力彎曲手肘時更痛",
+      "局部壓痛、腫脹",
+      "提重物困難"
+    ],
+    "grid_letter": [null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, "I", "I", "I", "I", "I", "I", null, null, null, "I", "I", "I", "I", "I", "I", null, null, null, "I", "I", "I", "I", "I", "I", null, null, null, "I", "I", "I", "I", "I", "I", null, null, null, null, "I", "I", "I", "I", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, "YELLOW", "YELLOW", "YELLOW", null, null, null, null, null, null, "YELLOW", "YELLOW", "YELLOW", null, null, null, null, null, "BLUE", "YELLOW", "YELLOW", "YELLOW", "YELLOW", "YELLOW", null, null, null, "BLUE", "BLUE", "BLUE", "BLUE", "YELLOW", "YELLOW", null, null, null, "BLUE", "BLUE", "BLUE", "BLUE", "YELLOW", "YELLOW", null, null, null, "BLUE", "BLUE", "BLUE", "BLUE", "BLUE", "BLUE", null, null, null, null, "BLUE", "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 9,
+    "name_zh": "胸大肌拉傷",
+    "name_en": "Pectoralis Major Strain",
+    "symptoms": [
+      "胸前或腋下前側疼痛",
+      "手臂往內收或推的動作痛",
+      "局部腫脹、瘀青",
+      "肩前側力量下降"
+    ],
+    "grid_letter": [null, null, null, null, null, null, "S", "S", "S", null, "I", "I", null, null, null, "S", "S", "S", null, "I", "I", null, null, null, "S", "S", null, null, "I", "I", null, null, null, null, null, "S", null, "I", "I", null, null, null, null, null, null, null, "I", "I", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+    "grid_color": [null, null, null, null, null, null, "YELLOW", "YELLOW", "RED", null, "YELLOW", "BLUE", null, null, null, "BLUE", "YELLOW", "YELLOW", null, "YELLOW", "BLUE", null, null, null, "BLUE", "YELLOW", null, null, "YELLOW", "BLUE", null, null, null, null, null, "YELLOW", null, "YELLOW", "YELLOW", null, null, null, null, null, null, null, "YELLOW", "YELLOW", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+  },
+  {
+    "id": 10,
+    "name_zh": "肩關節下囊增厚",
+    "name_en": "Inferior Glenohumeral Joint Capsular Thickening",
+    "symptoms": [
+      "手抬不高、上舉受限",
+      "後伸 (手往後) 疼痛明顯",
+      "關節僵硬",
+      "多見於冰凍肩中後期"
+    ],
+    "grid_letter": [null, null, null, null, null, null, "S", "S", "S", null, null, null, null, null, null, "S", "S", "S", null, null, null, null, null, null, "S", "S", "S", null, null, null, null, null, null, "S", "S", "S", null, null, null, null, null, null, null, "S", "S", null, null, "C", "C", null, null, null, "S", "S", null, null, "C", "C", "C", "C", "C", "C", null, null, null, "C", "C", "C", "C", null, "C", null, null, null, null, "C", "C", null, null, null, null],
+    "grid_color": [null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, null, "BLUE", "BLUE", null, null, "YELLOW", "YELLOW", null, null, null, "BLUE", "BLUE", null, null, "YELLOW", "YELLOW", "BLUE", "BLUE", "BLUE", "BLUE", null, null, null, "YELLOW", "YELLOW", "BLUE", "BLUE", null, "BLUE", null, null, null, null, "YELLOW", "YELLOW", null, null, null, null]
+  },
+  {
+    "id": 11,
+    "name_zh": "急性肩關節炎",
+    "name_en": "Acute Glenohumeral Arthritis",
+    "symptoms": [
+      "劇烈肩痛 + 明顯腫脹",
+      "活動度大幅下降",
+      "早上僵硬",
+      "紅、熱、痛 (急性發炎)"
+    ],
+    "grid_letter": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "W", "W", null, null, null, null, null, null, null, "W", "W", "W", null, null, null, null, null, null, null, "W", "W", null, null, null, "C", null, null, null, "W", "W", null, null, null, "C", null, null, null, null, "I", null, null, "C", "C", "I", "I", "I", "I", null, null, null, "C", "C", "I", "I", "I", "I", null, null, null, "C", "C", "C", "C", "I", null, null],
+    "grid_color": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "YELLOW", "YELLOW", null, null, null, null, null, null, null, "YELLOW", "YELLOW", "YELLOW", null, null, null, null, null, null, null, "BLUE", "BLUE", null, null, null, "RED", null, null, null, "BLUE", "BLUE", null, null, null, "RED", null, null, null, null, "YELLOW", null, null, "YELLOW", "YELLOW", "YELLOW", "YELLOW", "YELLOW", "YELLOW", null, null, null, "RED", "RED", "YELLOW", "YELLOW", "BLUE", "BLUE", null, null, null, "RED", "YELLOW", "YELLOW", "YELLOW", "BLUE", null, null]
+  }
+]
