@@ -1,9 +1,13 @@
 import logging
+import os
+import uuid
 
-from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 
-from .models import Patient, Examination, Image, Diagnosis
 from .ai_service import analyze_training_image
 
 logger = logging.getLogger(__name__)
@@ -12,10 +16,13 @@ logger = logging.getLogger(__name__)
 def upload_view(request):
     """
     Upload page for single examination image.
+    Stores image path and operator name in session.
     """
     if request.method == 'POST':
         operator_name = request.POST.get('operator_name')
         image_file = request.FILES.get('image')
+
+        print(f"POST: operator={operator_name}, FILES={list(request.FILES.keys())}, POST={list(request.POST.keys())}")
 
         if not operator_name:
             messages.error(request, '請輸入操作者姓名')
@@ -25,121 +32,102 @@ def upload_view(request):
             messages.error(request, '請上傳一張圖片')
             return redirect('diagnosis:upload')
 
-        # Create a placeholder patient (will be identified from image later)
-        patient, _ = Patient.objects.get_or_create(
-            name='待辨識',
-            defaults={'phone': '', 'gender': ''}
-        )
+        # Generate unique ID for this analysis
+        examination_id = str(uuid.uuid4())
 
-        # Create examination
-        examination = Examination.objects.create(
-            patient=patient,
-            therapist=None,
-            status='PENDING'
-        )
+        # Save image to media folder
+        upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+        os.makedirs(upload_dir, exist_ok=True)
 
-        # Store operator name in session
+        ext = os.path.splitext(image_file.name)[1]
+        filename = f"{examination_id}{ext}"
+        image_path = os.path.join(upload_dir, filename)
+
+        with open(image_path, 'wb') as f:
+            for chunk in image_file.chunks():
+                f.write(chunk)
+
+        # Store in session
+        request.session['examination_id'] = examination_id
         request.session['operator_name'] = operator_name
+        request.session['image_path'] = image_path
+        request.session['ai_result'] = None
 
-        # Save the uploaded image
-        Image.objects.create(
-            examination=examination,
-            image=image_file,
-            slot_type='SLOT_A'
-        )
-
-        return redirect('diagnosis:analyzing', examination_id=examination.id)
+        return redirect('diagnosis:analyzing', examination_id=examination_id)
 
     return render(request, 'diagnosis/upload.html')
 
 
 def analyzing_view(request, examination_id):
     """
-    Analyzing page - triggers AI analysis and displays loading animation.
+    Analyzing page - displays loading animation.
+    AI analysis is triggered via AJAX from the frontend.
     """
-    examination = get_object_or_404(Examination, id=examination_id)
-
-    # Check if analysis already done
-    if hasattr(examination, 'diagnosis') and examination.diagnosis:
-        return redirect('diagnosis:result', examination_id=examination_id)
-
-    # Check if already processing
-    if examination.status == 'PROCESSING':
-        return render(request, 'diagnosis/analyzing.html', {
-            'examination': examination,
-            'examination_id': examination_id
-        })
-
-    # Start processing
-    examination.status = 'PROCESSING'
-    examination.save()
-
-    # Get the uploaded image
-    image_obj = examination.images.first()
-    if not image_obj:
-        examination.status = 'FAILED'
-        examination.save()
-        messages.error(request, '找不到上傳的圖片')
+    session_exam_id = request.session.get('examination_id')
+    if session_exam_id != str(examination_id):
+        messages.error(request, '無效的分析請求')
         return redirect('diagnosis:upload')
 
-    # Call AI service
-    try:
-        image_path = image_obj.image.path
-        ai_result = analyze_training_image(image_path)
-
-        # Create diagnosis record
-        if 'error' in ai_result:
-            Diagnosis.objects.create(
-                examination=examination,
-                raw_data=ai_result,
-                clinical_summary=f"分析失敗: {ai_result.get('error', '未知錯誤')}",
-                risk_assessment={'error': True}
-            )
-            examination.status = 'FAILED'
-        else:
-            Diagnosis.objects.create(
-                examination=examination,
-                raw_data=ai_result,
-                clinical_summary='AI 分析完成',
-                risk_assessment={}
-            )
-            examination.status = 'COMPLETED'
-
-        examination.save()
+    if request.session.get('ai_result'):
         return redirect('diagnosis:result', examination_id=examination_id)
 
+    return render(request, 'diagnosis/analyzing.html', {
+        'examination_id': examination_id
+    })
+
+
+@require_POST
+def analyze_api(request, examination_id):
+    """
+    API endpoint to trigger AI analysis.
+    Returns JSON with success status and redirect URL.
+    """
+    session_exam_id = request.session.get('examination_id')
+    if session_exam_id != str(examination_id):
+        return JsonResponse({'error': '無效的分析請求'}, status=400)
+
+    if request.session.get('ai_result'):
+        return JsonResponse({
+            'success': True,
+            'redirect_url': f'/diagnosis/result/{examination_id}/'
+        })
+
+    image_path = request.session.get('image_path')
+    if not image_path or not os.path.exists(image_path):
+        return JsonResponse({'error': '找不到上傳的圖片'}, status=400)
+
+    try:
+        ai_result = analyze_training_image(image_path)
+        request.session['ai_result'] = ai_result
+        return JsonResponse({
+            'success': True,
+            'redirect_url': f'/diagnosis/result/{examination_id}/'
+        })
     except Exception as e:
         logger.exception("AI analysis failed")
-        examination.status = 'FAILED'
-        examination.save()
-        Diagnosis.objects.create(
-            examination=examination,
-            raw_data={'error': str(e)},
-            clinical_summary=f"系統錯誤: {e}",
-            risk_assessment={'error': True}
-        )
-        return redirect('diagnosis:result', examination_id=examination_id)
+        request.session['ai_result'] = {'error': str(e)}
+        return JsonResponse({
+            'success': True,
+            'redirect_url': f'/diagnosis/result/{examination_id}/'
+        })
 
 
 def result_view(request, examination_id):
     """
     Result page displaying diagnosis results.
     """
-    examination = get_object_or_404(Examination, id=examination_id)
+    session_exam_id = request.session.get('examination_id')
+    if session_exam_id != str(examination_id):
+        messages.error(request, '無效的分析請求')
+        return redirect('diagnosis:upload')
+
     operator_name = request.session.get('operator_name', '未知')
-
-    # Get diagnosis data
-    diagnosis = getattr(examination, 'diagnosis', None)
-    raw_data = diagnosis.raw_data if diagnosis else {}
-
-    # Check for error
+    raw_data = request.session.get('ai_result', {})
     has_error = 'error' in raw_data
 
     context = {
         'examination_id': examination_id,
-        'examination': examination,
         'operator_name': operator_name,
-        'diagnosis': diagnosis,
         'raw_data': raw_data,
         'has_error': has_error,
     }

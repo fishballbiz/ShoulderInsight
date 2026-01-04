@@ -5,40 +5,30 @@
 
 {% block extra_css %}
 <style>
-    body {
-        background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 50%, #f0f4f8 100%);
-        overflow: hidden;
-        margin: 0;
-        padding: 0;
-    }
-
     .analyzing-container {
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        min-height: 100vh;
+        min-height: calc(100vh - 70px);
         text-align: center;
-        padding: 20px;
-        box-sizing: border-box;
+        padding: 40px 20px;
     }
 
     .analyzing-text {
         margin-bottom: 30px;
-        z-index: 20;
     }
 
     .analyzing-text h1 {
-        font-size: 2rem;
-        font-weight: 600;
-        color: #2c5282;
-        margin-bottom: 10px;
-        letter-spacing: 0.5px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 12px;
     }
 
     .analyzing-text p {
         font-size: 1.1rem;
-        color: #718096;
+        color: var(--text-muted);
         margin: 0;
     }
 
@@ -55,32 +45,30 @@
     }
 
     .video-container {
-        position: relative;
         width: 100%;
-        max-width: 500px;
+        max-width: 420px;
         margin: 20px 0;
         border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 20px 60px rgba(44, 82, 130, 0.15);
-        background: #fff;
+        box-shadow: 0 10px 40px rgba(44, 82, 130, 0.12);
+        background: var(--card-bg);
     }
 
     .tai-chi-video {
         width: 100%;
         height: auto;
         display: block;
-        border-radius: 20px;
     }
 
     .progress-section {
         width: 100%;
-        max-width: 400px;
+        max-width: 380px;
         margin-top: 30px;
     }
 
     .progress-bar-container {
         width: 100%;
-        height: 8px;
+        height: 10px;
         background: #e2e8f0;
         border-radius: 10px;
         overflow: hidden;
@@ -89,27 +77,26 @@
     .progress-bar {
         height: 100%;
         width: 0%;
-        background: linear-gradient(90deg, #4299e1, #63b3ed, #4299e1);
-        background-size: 200% 100%;
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
         border-radius: 10px;
         transition: width 0.3s ease-out;
-        animation: gradient-move 2s linear infinite;
-    }
-
-    @keyframes gradient-move {
-        0% { background-position: 0% center; }
-        100% { background-position: 200% center; }
     }
 
     .progress-text {
-        margin-top: 15px;
-        font-size: 0.9rem;
-        color: #a0aec0;
+        margin-top: 12px;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .progress-percent {
+        color: var(--primary-color);
+        font-weight: 700;
     }
 
     .trust-badges {
         display: flex;
-        gap: 30px;
+        gap: 24px;
         margin-top: 40px;
         flex-wrap: wrap;
         justify-content: center;
@@ -119,22 +106,19 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        color: #718096;
-        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
     }
 
     .trust-badge i {
-        color: #48bb78;
+        color: var(--accent-color);
         font-size: 1.1rem;
     }
 
     .brand-footer {
-        position: absolute;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: #cbd5e0;
-        font-size: 0.8rem;
+        margin-top: 40px;
+        color: #a0aec0;
+        font-size: 0.85rem;
     }
 </style>
 {% endblock %}
@@ -142,7 +126,7 @@
 {% block content %}
 <div class="analyzing-container">
     <div class="analyzing-text">
-        <h1>AI 正在分析您的數據<span class="dots"></span></h1>
+        <h1><i class="bi bi-cpu me-2"></i>AI 正在分析您的數據<span class="dots"></span></h1>
         <p>請稍候，我們正在為您產生專業診斷報告</p>
     </div>
 
@@ -156,7 +140,7 @@
         <div class="progress-bar-container">
             <div class="progress-bar" id="progressBar"></div>
         </div>
-        <p class="progress-text">分析進度 <span id="progressPercent">0</span>%</p>
+        <p class="progress-text">分析進度 <span class="progress-percent" id="progressPercent">0</span>%</p>
     </div>
 
     <div class="trust-badges">
@@ -191,8 +175,15 @@
     let progress = 0;
     let targetProgress = 0;
     let lastUpdate = Date.now();
+    let analysisComplete = false;
 
     function updateProgress() {
+        if (analysisComplete) {
+            progressBar.style.width = '100%';
+            progressPercent.textContent = '100';
+            return;
+        }
+
         const now = Date.now();
         const timeSinceLastUpdate = now - lastUpdate;
 
@@ -201,7 +192,7 @@
             const maxJump = remaining * 0.1;
             const minJump = remaining * 0.01;
             const jump = Math.random() * (maxJump - minJump) + minJump;
-            targetProgress = Math.min(99.9, progress + jump);
+            targetProgress = Math.min(95, progress + jump);
             lastUpdate = now;
         }
 
@@ -214,8 +205,29 @@
 
     updateProgress();
 
-    setTimeout(function() {
-        window.location.href = "{% url 'diagnosis:result' examination_id=examination_id %}";
-    }, 8000);
+    fetch("{% url 'diagnosis:analyze_api' examination_id=examination_id %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        analysisComplete = true;
+        if (data.redirect_url) {
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 500);
+        } else if (data.error) {
+            alert('分析失敗: ' + data.error);
+            window.location.href = "{% url 'diagnosis:upload' %}";
+        }
+    })
+    .catch(error => {
+        console.error('Analysis error:', error);
+        alert('分析請求失敗，請重試');
+        window.location.href = "{% url 'diagnosis:upload' %}";
+    });
 </script>
 {% endblock %}

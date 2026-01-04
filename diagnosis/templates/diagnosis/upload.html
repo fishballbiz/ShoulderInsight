@@ -4,154 +4,172 @@
 
 {% block extra_css %}
 <style>
-    body {
-        background: linear-gradient(135deg, #0a192f 0%, #112240 25%, #1a365d 50%, #2d4a6e 75%, #3d5a80 100%);
-        color: #e6f1ff;
-        min-height: 100vh;
-    }
-
     .upload-container {
         padding: 40px 20px;
         max-width: 600px;
         margin: 0 auto;
     }
 
-    .glass-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        padding: 30px;
+    .page-header {
+        text-align: center;
         margin-bottom: 30px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
 
     .page-title {
-        color: #64ffda;
+        color: var(--primary-color);
         font-weight: 700;
+        font-size: 1.8rem;
         margin-bottom: 10px;
     }
 
     .page-subtitle {
-        color: #8892b0;
+        color: var(--text-muted);
         font-size: 1.1rem;
     }
 
+    .card {
+        background: var(--card-bg);
+        border: none;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
     .form-label {
-        color: #ccd6f6;
-        font-weight: 500;
+        color: var(--text-dark);
+        font-weight: 600;
+        margin-bottom: 8px;
     }
 
     .form-control {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #e6f1ff;
-        border-radius: 10px;
-        padding: 12px;
+        background: var(--bg-light);
+        border: 2px solid #e2e8f0;
+        color: var(--text-dark);
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
     }
 
     .form-control:focus {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: #64ffda;
-        color: #e6f1ff;
-        box-shadow: 0 0 0 0.25rem rgba(100, 255, 218, 0.25);
+        background: #fff;
+        border-color: var(--primary-light);
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.15);
     }
 
     .form-control::placeholder {
-        color: #8892b0;
+        color: #a0aec0;
     }
 
     .dropzone {
-        border: 2px dashed rgba(255, 255, 255, 0.3);
-        border-radius: 15px;
+        border: 2px dashed #cbd5e0;
+        border-radius: 16px;
         padding: 40px 30px;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.03);
-        min-height: 280px;
+        background: var(--bg-light);
+        min-height: 240px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        position: relative;
-        overflow: hidden;
     }
 
     .dropzone:hover {
-        border-color: #64ffda;
-        background: rgba(100, 255, 218, 0.05);
-        transform: translateY(-2px);
+        border-color: var(--primary-light);
+        background: rgba(66, 153, 225, 0.05);
     }
 
     .dropzone.dragover {
-        border-color: #64ffda;
-        background: rgba(100, 255, 218, 0.1);
-        transform: scale(1.02);
+        border-color: var(--primary-light);
+        background: rgba(66, 153, 225, 0.1);
+        transform: scale(1.01);
     }
 
     .dropzone.has-file {
-        border-color: #4facfe;
-        background: rgba(79, 172, 254, 0.1);
+        border-color: var(--accent-color);
+        background: rgba(72, 187, 120, 0.05);
     }
 
     .dropzone-icon {
-        font-size: 4rem;
-        color: rgba(255, 255, 255, 0.5);
-        margin-bottom: 20px;
+        font-size: 3.5rem;
+        color: #a0aec0;
+        margin-bottom: 16px;
         transition: all 0.3s ease;
     }
 
     .dropzone:hover .dropzone-icon {
-        color: #64ffda;
+        color: var(--primary-light);
         transform: scale(1.1);
     }
 
     .dropzone-text {
-        color: #ccd6f6;
-        font-weight: 500;
+        color: var(--text-dark);
+        font-weight: 600;
         font-size: 1.1rem;
+        margin-bottom: 4px;
     }
 
     .dropzone-subtext {
-        color: #8892b0;
+        color: var(--text-muted);
         font-size: 0.9rem;
-        margin-top: 8px;
     }
 
     .preview-image {
         max-width: 100%;
-        max-height: 200px;
-        border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        margin-bottom: 15px;
+        max-height: 180px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 12px;
     }
 
-    .btn-primary-glow {
-        background: linear-gradient(90deg, #4facfe, #00f2fe);
+    .file-name {
+        color: var(--accent-color);
+        font-weight: 500;
+    }
+
+    .btn-remove {
+        color: #e53e3e;
+        background: rgba(229, 62, 62, 0.1);
+        border: 1px solid rgba(229, 62, 62, 0.2);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        margin-top: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-remove:hover {
+        background: rgba(229, 62, 62, 0.15);
+        color: #c53030;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
         border: none;
         color: white;
-        padding: 15px 40px;
-        border-radius: 50px;
+        padding: 16px 40px;
+        border-radius: 12px;
         font-weight: 600;
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+        font-size: 1.1rem;
         width: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
     }
 
-    .btn-primary-glow:hover {
+    .btn-primary-custom:hover {
         transform: translateY(-2px);
-        box-shadow: 0 0 30px rgba(79, 172, 254, 0.6);
+        box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
         color: white;
     }
 
-    .btn-primary-glow:disabled {
-        opacity: 0.5;
+    .btn-primary-custom:disabled {
+        opacity: 0.6;
         cursor: not-allowed;
         transform: none;
+        box-shadow: none;
     }
 
     .loading-overlay {
@@ -161,7 +179,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(10, 25, 47, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(5px);
         z-index: 9999;
         justify-content: center;
@@ -176,40 +194,39 @@
     .spinner-custom {
         width: 50px;
         height: 50px;
-        border: 3px solid rgba(100, 255, 218, 0.3);
+        border: 3px solid #e2e8f0;
         border-radius: 50%;
-        border-top-color: #64ffda;
+        border-top-color: var(--primary-light);
         animation: spin 1s ease-in-out infinite;
         margin-bottom: 20px;
     }
 
     @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
+        to { transform: rotate(360deg); }
     }
 
     .mobile-options {
         display: none;
-        gap: 10px;
-        margin-top: 15px;
+        gap: 12px;
+        margin-top: 16px;
     }
 
     .mobile-btn {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: #ccd6f6;
+        background: var(--card-bg);
+        border: 2px solid #e2e8f0;
+        color: var(--text-dark);
         padding: 12px 20px;
         border-radius: 10px;
         font-size: 0.95rem;
+        font-weight: 500;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         flex: 1;
     }
 
     .mobile-btn:hover {
-        background: rgba(100, 255, 218, 0.1);
-        border-color: #64ffda;
+        border-color: var(--primary-light);
+        background: rgba(66, 153, 225, 0.05);
     }
 
     .mobile-btn i {
@@ -221,11 +238,11 @@
             display: flex;
         }
         .dropzone {
-            min-height: 200px;
-            padding: 30px 20px;
+            min-height: 180px;
+            padding: 24px 16px;
         }
         .dropzone-icon {
-            font-size: 3rem;
+            font-size: 2.5rem;
         }
     }
 </style>
@@ -233,21 +250,25 @@
 
 {% block content %}
 <div class="upload-container">
-    <div class="text-center mb-4">
-        <h1 class="page-title">上傳檢查圖片</h1>
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-cloud-upload me-2"></i>上傳檢查圖片
+        </h1>
         <p class="page-subtitle">拍攝或選擇病患的復健 App 截圖</p>
     </div>
 
     <form id="uploadForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <div class="glass-card">
-            <label for="operator_name" class="form-label mb-2">操作者姓名 *</label>
+        <div class="card">
+            <label for="operator_name" class="form-label">
+                <i class="bi bi-person me-1"></i>操作者姓名 *
+            </label>
             <input type="text" class="form-control" id="operator_name" name="operator_name"
                    placeholder="請輸入您的姓名" required>
         </div>
 
-        <div class="glass-card">
+        <div class="card">
             <div class="dropzone" id="dropzone">
                 <div class="default-content">
                     <i class="bi bi-camera dropzone-icon"></i>
@@ -269,7 +290,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn-primary-glow" id="submitBtn" disabled>
+        <button type="submit" class="btn-primary-custom" id="submitBtn" disabled>
             <i class="bi bi-arrow-right-circle me-2"></i>下一步
         </button>
     </form>
@@ -277,8 +298,8 @@
 
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner-custom"></div>
-    <h4 style="color: #64ffda; font-weight: 600;">正在上傳圖片</h4>
-    <p style="color: #8892b0;">請稍候...</p>
+    <h4 style="color: var(--primary-color); font-weight: 600;">正在上傳圖片</h4>
+    <p style="color: var(--text-muted);">請稍候...</p>
 </div>
 {% endblock %}
 
@@ -300,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
-    // Desktop: click dropzone to open file picker
     dropzone.addEventListener('click', function(e) {
         if (e.target.closest('.mobile-options')) return;
         if (!isMobile()) {
@@ -308,37 +328,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Mobile: camera button
     cameraBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         cameraInput.click();
     });
 
-    // Mobile: gallery button
     galleryBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         fileInput.click();
     });
 
-    // Handle file selection from gallery
     fileInput.addEventListener('change', function() {
-        if (this.files[0]) {
-            handleFile(this.files[0]);
-        }
+        if (this.files[0]) handleFile(this.files[0]);
     });
 
-    // Handle file selection from camera
     cameraInput.addEventListener('change', function() {
         if (this.files[0]) {
             handleFile(this.files[0]);
-            // Copy to main file input for form submission
             const dataTransfer = new DataTransfer();
             dataTransfer.items.add(this.files[0]);
             fileInput.files = dataTransfer.files;
         }
     });
 
-    // Drag and drop
     dropzone.addEventListener('dragover', function(e) {
         e.preventDefault();
         this.classList.add('dragover');
@@ -363,7 +375,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleFile(file) {
         if (!file) return;
-
         selectedFile = file;
         dropzone.classList.add('has-file');
         defaultContent.style.display = 'none';
@@ -374,15 +385,13 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.onload = function(e) {
             previewContainer.innerHTML = `
                 <img src="${e.target.result}" class="preview-image" alt="預覽圖">
-                <p class="mb-0" style="color: #64ffda;">
+                <p class="file-name mb-0">
                     <i class="bi bi-check-circle me-1"></i>${file.name}
                 </p>
-                <button type="button" class="btn btn-sm mt-2" id="removeBtn"
-                        style="color: #ff6b6b; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3);">
+                <button type="button" class="btn-remove" id="removeBtn">
                     <i class="bi bi-x-circle me-1"></i>移除
                 </button>
             `;
-
             document.getElementById('removeBtn').addEventListener('click', function(e) {
                 e.stopPropagation();
                 resetUpload();
@@ -402,21 +411,17 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
     }
 
-    // Form submission
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         e.preventDefault();
-
         const operatorName = document.getElementById('operator_name').value;
         if (!operatorName.trim()) {
             alert('請輸入操作者姓名');
             return;
         }
-
         if (!fileInput.files[0]) {
             alert('請選擇或拍攝一張圖片');
             return;
         }
-
         document.getElementById('loadingOverlay').classList.add('active');
         this.submit();
     });
