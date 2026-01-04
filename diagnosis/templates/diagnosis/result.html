@@ -1,7 +1,6 @@
 {% extends 'diagnosis/base.html' %}
-{% load static %}
 
-{% block title %}AI 診斷結果 - 智慧肩部復健 AI 診斷平台{% endblock %}
+{% block title %}AI 分析結果 - 智慧肩部復健 AI 診斷平台{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -13,7 +12,7 @@
 
     .result-container {
         padding: 40px 20px;
-        max-width: 1200px;
+        max-width: 900px;
         margin: 0 auto;
     }
 
@@ -30,7 +29,7 @@
 
     .section-title {
         color: #64ffda;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 600;
         margin-bottom: 20px;
         display: flex;
@@ -38,139 +37,120 @@
         gap: 10px;
     }
 
-    .patient-info-grid {
+    .info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 20px;
     }
 
     .info-item label {
         display: block;
         color: #8892b0;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         margin-bottom: 5px;
     }
 
     .info-item span {
-        font-size: 1.1rem;
-        font-weight: 500;
-        color: #ccd6f6;
-    }
-
-    .risk-badge {
-        display: inline-block;
-        padding: 8px 16px;
-        border-radius: 50px;
-        font-weight: 700;
         font-size: 1.2rem;
-        background: rgba(255, 77, 77, 0.2);
-        color: #ff4d4d;
-        border: 1px solid rgba(255, 77, 77, 0.5);
-        box-shadow: 0 0 15px rgba(255, 77, 77, 0.3);
+        font-weight: 600;
+        color: #ccd6f6;
     }
 
-    .metrics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-    }
-
-    .metric-card {
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 15px;
-        padding: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        transition: transform 0.3s ease;
-    }
-
-    .metric-card:hover {
-        transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.06);
-    }
-
-    .metric-name {
-        color: #8892b0;
-        font-size: 0.9rem;
-        margin-bottom: 10px;
-    }
-
-    .metric-value {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #e6f1ff;
-        margin-bottom: 5px;
-    }
-
-    .metric-status {
-        font-size: 0.85rem;
-        padding: 4px 10px;
-        border-radius: 4px;
-        display: inline-block;
-    }
-
-    .status-Critical {
-        color: #ff4d4d;
+    .error-card {
         background: rgba(255, 77, 77, 0.1);
+        border: 1px solid rgba(255, 77, 77, 0.3);
     }
 
-    .status-Warning {
-        color: #ffd700;
-        background: rgba(255, 215, 0, 0.1);
-    }
-
-    .status-Good {
-        color: #64ffda;
-        background: rgba(100, 255, 218, 0.1);
-    }
-
-    .ai-summary-text {
-        line-height: 1.8;
-        color: #ccd6f6;
+    .error-message {
+        color: #ff6b6b;
         font-size: 1.1rem;
-        margin-bottom: 20px;
     }
 
-    .recommendation-list {
-        list-style: none;
-        padding: 0;
-    }
-
-    .recommendation-list li {
-        position: relative;
-        padding-left: 30px;
-        margin-bottom: 15px;
-        color: #ccd6f6;
-        line-height: 1.6;
-    }
-
-    .recommendation-list li::before {
-        content: '→';
-        position: absolute;
-        left: 0;
+    .success-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: rgba(100, 255, 218, 0.15);
         color: #64ffda;
-        font-weight: bold;
+        border: 1px solid rgba(100, 255, 218, 0.3);
+    }
+
+    .failed-badge {
+        background: rgba(255, 77, 77, 0.15);
+        color: #ff6b6b;
+        border-color: rgba(255, 77, 77, 0.3);
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        gap: 3px;
+        max-width: 400px;
+        margin: 20px auto;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .grid-cell {
+        aspect-ratio: 1;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .grid-cell.GREEN { background: rgba(0, 255, 0, 0.4); }
+    .grid-cell.CYAN { background: rgba(0, 255, 255, 0.4); }
+    .grid-cell.size-0 { transform: scale(0.6); }
+    .grid-cell.size-1 { transform: scale(1); }
+
+    .raw-data-container {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        padding: 20px;
+        overflow-x: auto;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .raw-data-container pre {
+        color: #8892b0;
+        font-size: 0.85rem;
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
     }
 
     .action-buttons {
         display: flex;
-        gap: 20px;
+        gap: 15px;
         justify-content: center;
-        margin-top: 40px;
+        margin-top: 30px;
+        flex-wrap: wrap;
     }
 
     .btn-primary-glow {
         background: linear-gradient(90deg, #4facfe, #00f2fe);
         border: none;
         color: white;
-        padding: 12px 30px;
+        padding: 12px 28px;
         border-radius: 50px;
         font-weight: 600;
-        font-size: 1.1rem;
+        font-size: 1rem;
         cursor: pointer;
         transition: all 0.3s ease;
         box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
         text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .btn-primary-glow:hover {
@@ -183,14 +163,16 @@
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: white;
-        padding: 12px 30px;
+        padding: 12px 28px;
         border-radius: 50px;
         font-weight: 600;
-        font-size: 1.1rem;
+        font-size: 1rem;
         cursor: pointer;
         transition: all 0.3s ease;
         text-decoration: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .btn-secondary-glass:hover {
@@ -202,98 +184,159 @@
 
 {% block content %}
 <div class="result-container">
-    <!-- Header Section -->
+    <!-- Header -->
     <div class="glass-card">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h1 class="mb-2" style="font-weight: 700;">AI 診斷報告</h1>
-                <p class="mb-0" style="color: #8892b0;">報告編號: {{ examination_id }}</p>
+                <h1 class="mb-2" style="font-weight: 700; color: #64ffda;">
+                    <i class="bi bi-clipboard2-data me-2"></i>AI 分析結果
+                </h1>
+                <p class="mb-0" style="color: #8892b0;">
+                    報告編號: {{ examination_id|truncatechars:12 }}
+                </p>
             </div>
-            <div class="text-end">
-                <div class="risk-badge"
-                    style="color: {{ data.risk_assessment.color }}; border-color: {{ data.risk_assessment.color }}; background: {{ data.risk_assessment.color }}20; box-shadow: 0 0 15px {{ data.risk_assessment.color }}40;">
-                    {{ data.risk_assessment.label }} ({{ data.risk_assessment.score }})
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Patient Info -->
-    <div class="glass-card">
-        <div class="section-title">
-            <i class="bi bi-person-badge"></i> 患者資訊
-        </div>
-        <div class="patient-info-grid">
-            <div class="info-item">
-                <label>姓名</label>
-                <span>{{ data.patient.name }}</span>
-            </div>
-            <div class="info-item">
-                <label>病歷號</label>
-                <span>{{ data.patient.id }}</span>
-            </div>
-            <div class="info-item">
-                <label>年齡/性別</label>
-                <span>{{ data.patient.age }}歲 / {{ data.patient.gender }}</span>
-            </div>
-            <div class="info-item">
-                <label>診斷日期</label>
-                <span>{{ data.patient.date }}</span>
+            <div>
+                {% if has_error %}
+                <span class="success-badge failed-badge">
+                    <i class="bi bi-x-circle me-1"></i>分析失敗
+                </span>
+                {% else %}
+                <span class="success-badge">
+                    <i class="bi bi-check-circle me-1"></i>分析完成
+                </span>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Key Metrics -->
+    {% if has_error %}
+    <!-- Error Display -->
+    <div class="glass-card error-card">
+        <div class="section-title" style="color: #ff6b6b;">
+            <i class="bi bi-exclamation-triangle"></i> 分析錯誤
+        </div>
+        <p class="error-message">{{ raw_data.error }}</p>
+        <p style="color: #8892b0;">請確認上傳的圖片是否為有效的「訓練成果」畫面截圖。</p>
+    </div>
+
+    {% else %}
+    <!-- Session Info -->
     <div class="glass-card">
         <div class="section-title">
-            <i class="bi bi-graph-up"></i> 關鍵指標分析
+            <i class="bi bi-info-circle"></i> 訓練資訊
         </div>
-        <div class="metrics-grid">
-            {% for metric in data.metrics %}
-            <div class="metric-card">
-                <div class="metric-name">{{ metric.name }}</div>
-                <div class="metric-value">{{ metric.value }}</div>
-                <div class="metric-status status-{{ metric.status }}">
-                    {{ metric.status }}
-                    {% if metric.trend == 'up' %}
-                    <i class="bi bi-arrow-up-short"></i>
-                    {% elif metric.trend == 'down' %}
-                    <i class="bi bi-arrow-down-short"></i>
-                    {% else %}
-                    <i class="bi bi-dash"></i>
-                    {% endif %}
-                </div>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>訓練名稱</label>
+                <span>{{ raw_data.title|default:"--" }}</span>
             </div>
-            {% endfor %}
+            <div class="info-item">
+                <label>訓練時間</label>
+                <span>{{ raw_data.date|default:"--" }}</span>
+            </div>
+            <div class="info-item">
+                <label>完成動作數</label>
+                <span>{{ raw_data.action_counts|default:"--" }}</span>
+            </div>
+            <div class="info-item">
+                <label>訓練時長</label>
+                <span>{{ raw_data.elapse_time|default:"--" }}</span>
+            </div>
         </div>
     </div>
 
-    <!-- AI Analysis -->
+    <!-- Grid Visualization -->
+    {% if raw_data.grid_color %}
     <div class="glass-card">
         <div class="section-title">
-            <i class="bi bi-robot"></i> AI 綜合評估
+            <i class="bi bi-grid-3x3"></i> 9×9 網格分析
         </div>
-        <div class="ai-summary-text">
-            {{ data.ai_analysis.summary }}
+        <div class="grid-container" id="gridDisplay">
+            <!-- Grid will be rendered by JavaScript -->
         </div>
-        <div class="mt-4">
-            <h5 style="color: #64ffda; margin-bottom: 15px;">建議處方：</h5>
-            <ul class="recommendation-list">
-                {% for rec in data.ai_analysis.recommendations %}
-                <li>{{ rec }}</li>
-                {% endfor %}
-            </ul>
+        <p class="text-center mt-3" style="color: #8892b0; font-size: 0.9rem;">
+            <span style="color: #00ff00;">● GREEN</span> &nbsp;|&nbsp;
+            <span style="color: #00ffff;">● CYAN</span> &nbsp;|&nbsp;
+            大圓 = 主要區域, 小圓 = 次要區域
+        </p>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+    <!-- Raw Data (Debug) -->
+    <div class="glass-card">
+        <div class="section-title">
+            <i class="bi bi-code-slash"></i> 原始 JSON 資料
+        </div>
+        <div class="raw-data-container">
+            <pre id="rawDataPre">{{ raw_data|safe }}</pre>
+        </div>
+    </div>
+
+    <!-- Operator Info -->
+    <div class="glass-card">
+        <div class="info-grid">
+            <div class="info-item">
+                <label>操作者</label>
+                <span>{{ operator_name }}</span>
+            </div>
+            <div class="info-item">
+                <label>分析狀態</label>
+                <span>{{ examination.get_status_display }}</span>
+            </div>
         </div>
     </div>
 
     <!-- Actions -->
     <div class="action-buttons">
         <a href="{% url 'diagnosis:upload' %}" class="btn-secondary-glass">
-            <i class="bi bi-arrow-left"></i> 返回首頁
+            <i class="bi bi-plus-circle"></i> 新增分析
         </a>
-        <a href="#" class="btn-primary-glow">
-            <i class="bi bi-file-earmark-pdf"></i> 下載完整報告
+        <a href="{% url 'diagnosis:upload' %}" class="btn-primary-glow">
+            <i class="bi bi-house"></i> 返回首頁
         </a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Format raw JSON
+    const rawDataPre = document.getElementById('rawDataPre');
+    try {
+        const rawText = rawDataPre.textContent;
+        // Convert Python dict string to JSON
+        const jsonText = rawText
+            .replace(/'/g, '"')
+            .replace(/None/g, 'null')
+            .replace(/True/g, 'true')
+            .replace(/False/g, 'false');
+        const data = JSON.parse(jsonText);
+        rawDataPre.textContent = JSON.stringify(data, null, 2);
+
+        // Render grid if available
+        const gridContainer = document.getElementById('gridDisplay');
+        if (gridContainer && data.grid_color && data.grid_size) {
+            gridContainer.innerHTML = '';
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                const color = data.grid_color[i];
+                const size = data.grid_size[i];
+                if (color) {
+                    cell.classList.add(color);
+                    if (size !== null) {
+                        cell.classList.add('size-' + size);
+                    }
+                }
+                gridContainer.appendChild(cell);
+            }
+        }
+    } catch (e) {
+        console.log('Could not parse raw data as JSON:', e);
+    }
+});
+</script>
 {% endblock %}

@@ -1,4 +1,8 @@
-## AI Prompt — Training Result Image Extraction
+"""
+Prompt templates for AI image analysis.
+"""
+
+TRAINING_RESULT_EXTRACTION_PROMPT = """## AI Prompt — Training Result Image Extraction
 
 **Role**
 You are an AI vision-based data extractor specialized in structured UI screenshots containing training results and grid-based visual data.
@@ -86,4 +90,9 @@ Return **only**:
 ```json
 { "error": "Invalid training result image" }
 ```
+"""
 
+
+def get_extraction_prompt() -> str:
+    """Return the training result extraction prompt."""
+    return TRAINING_RESULT_EXTRACTION_PROMPT

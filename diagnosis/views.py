@@ -1,7 +1,12 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import Patient, Examination, Image
-from datetime import datetime
+
+from .models import Patient, Examination, Image, Diagnosis
+from .ai_service import analyze_training_image
+
+logger = logging.getLogger(__name__)
 
 
 def upload_view(request):
@@ -26,14 +31,14 @@ def upload_view(request):
             defaults={'phone': '', 'gender': ''}
         )
 
-        # Create examination with operator name stored in notes or as therapist info
+        # Create examination
         examination = Examination.objects.create(
             patient=patient,
             therapist=None,
-            status='PROCESSING'
+            status='PENDING'
         )
 
-        # Store operator name in session for later use
+        # Store operator name in session
         request.session['operator_name'] = operator_name
 
         # Save the uploaded image
@@ -50,13 +55,70 @@ def upload_view(request):
 
 def analyzing_view(request, examination_id):
     """
-    Analyzing page with loading animation.
+    Analyzing page - triggers AI analysis and displays loading animation.
     """
     examination = get_object_or_404(Examination, id=examination_id)
-    return render(request, 'diagnosis/analyzing.html', {
-        'examination': examination,
-        'examination_id': examination_id
-    })
+
+    # Check if analysis already done
+    if hasattr(examination, 'diagnosis') and examination.diagnosis:
+        return redirect('diagnosis:result', examination_id=examination_id)
+
+    # Check if already processing
+    if examination.status == 'PROCESSING':
+        return render(request, 'diagnosis/analyzing.html', {
+            'examination': examination,
+            'examination_id': examination_id
+        })
+
+    # Start processing
+    examination.status = 'PROCESSING'
+    examination.save()
+
+    # Get the uploaded image
+    image_obj = examination.images.first()
+    if not image_obj:
+        examination.status = 'FAILED'
+        examination.save()
+        messages.error(request, '找不到上傳的圖片')
+        return redirect('diagnosis:upload')
+
+    # Call AI service
+    try:
+        image_path = image_obj.image.path
+        ai_result = analyze_training_image(image_path)
+
+        # Create diagnosis record
+        if 'error' in ai_result:
+            Diagnosis.objects.create(
+                examination=examination,
+                raw_data=ai_result,
+                clinical_summary=f"分析失敗: {ai_result.get('error', '未知錯誤')}",
+                risk_assessment={'error': True}
+            )
+            examination.status = 'FAILED'
+        else:
+            Diagnosis.objects.create(
+                examination=examination,
+                raw_data=ai_result,
+                clinical_summary='AI 分析完成',
+                risk_assessment={}
+            )
+            examination.status = 'COMPLETED'
+
+        examination.save()
+        return redirect('diagnosis:result', examination_id=examination_id)
+
+    except Exception as e:
+        logger.exception("AI analysis failed")
+        examination.status = 'FAILED'
+        examination.save()
+        Diagnosis.objects.create(
+            examination=examination,
+            raw_data={'error': str(e)},
+            clinical_summary=f"系統錯誤: {e}",
+            risk_assessment={'error': True}
+        )
+        return redirect('diagnosis:result', examination_id=examination_id)
 
 
 def result_view(request, examination_id):
@@ -66,40 +128,20 @@ def result_view(request, examination_id):
     examination = get_object_or_404(Examination, id=examination_id)
     operator_name = request.session.get('operator_name', '未知')
 
-    # Mock data for demonstration
-    mock_data = {
-        'operator': operator_name,
-        'patient': {
-            'name': '陳大明',
-            'id': 'P-2024-001',
-            'age': 45,
-            'gender': '男',
-            'date': datetime.now().strftime("%Y-%m-%d"),
-        },
-        'risk_assessment': {
-            'level': 'High',
-            'score': 85,
-            'color': '#ff4d4d',
-            'label': '高風險'
-        },
-        'metrics': [
-            {'name': '肩關節活動度 (ROM)', 'value': '120°', 'status': 'Warning', 'trend': 'down'},
-            {'name': '疼痛指數 (VAS)', 'value': '7/10', 'status': 'Critical', 'trend': 'up'},
-            {'name': '動作流暢度', 'value': '65%', 'status': 'Warning', 'trend': 'flat'},
-            {'name': '復健達成率', 'value': '40%', 'status': 'Critical', 'trend': 'down'},
-        ],
-        'ai_analysis': {
-            'summary': '根據上傳的復健數據分析，患者目前的肩部活動度受限明顯，'
-                       '且疼痛指數偏高。熱圖顯示三角肌区域有明顯的代償性用力，'
-                       '建議調整復健強度，避免過度代償導致二次傷害。',
-            'recommendations': [
-                '暫停高強度的舉手動作，改為被動關節活動。',
-                '加強肩胛骨穩定肌群的訓練。',
-                '建議進行超音波檢查以排除旋轉肌袖撕裂的可能性。'
-            ]
-        }
-    }
-    return render(request, 'diagnosis/result.html', {
+    # Get diagnosis data
+    diagnosis = getattr(examination, 'diagnosis', None)
+    raw_data = diagnosis.raw_data if diagnosis else {}
+
+    # Check for error
+    has_error = 'error' in raw_data
+
+    context = {
         'examination_id': examination_id,
-        'data': mock_data
-    })
+        'examination': examination,
+        'operator_name': operator_name,
+        'diagnosis': diagnosis,
+        'raw_data': raw_data,
+        'has_error': has_error,
+    }
+
+    return render(request, 'diagnosis/result.html', context)

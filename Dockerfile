@@ -30,11 +30,9 @@ RUN pip install \
     "Django>=5.0" \
     daphne \
     psycopg2-binary \
-    google-cloud-aiplatform \
-    google-cloud-storage \
+    google-genai \
     python-dotenv \
-    weasyprint \
-    markdown
+    weasyprint
 
 # Copy project
 COPY . /app/
