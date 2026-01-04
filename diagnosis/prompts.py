@@ -2,69 +2,47 @@
 Prompt templates for AI image analysis.
 """
 
-TRAINING_RESULT_EXTRACTION_PROMPT = """## AI Prompt — Training Result Image Extraction
+TRAINING_RESULT_EXTRACTION_PROMPT = """Parse the image and extract training result data.
 
-**Role**
-You are an AI vision-based data extractor specialized in structured UI screenshots containing training results and grid-based visual data.
+## CRITICAL: 9×9 Grid Extraction (MOST IMPORTANT)
 
-**Input**
-A single screenshot image that should represent a 「訓練成果」 (Training Result) screen.
+The grid extraction MUST be 100% accurate. This is the primary purpose of this task.
 
-**Task**
-Analyze the image and extract structured information. If the image does **not** match the expected layout or key elements are missing, return a JSON with an `error` field only.
-
----
-
-## Extraction Requirements
-
-### 1. Session Metadata
-
-* **title**: The training name shown below the date (e.g., `訓練 A`, `一般訓練 12 組`, `肩復樂訓練-簡單`)
-* **date**: Full timestamp string shown near the top (e.g., `2024-06-11 14:24:32`)
-
-### 2. Summary Metrics
-
-* **action_counts**: Integer value under the label `完成動作數`
-* **elapse_time**: Time string under the label `訓練時間` (format like `MM:SS.xx` or `HH:MM:SS.xx`)
-
-### 3. 9×9 Grid Analysis
-
-* Locate a **9×9 grid** in the lower portion of the image.
-* Traverse the grid in **row-major order** (left → right, top → bottom), producing **exactly 81 entries** per array.
+1. Locate the **9×9 grid** in the lower portion of the image
+2. Traverse in **row-major order** (left → right, top → bottom)
+3. Output **exactly 81 entries** per array
 
 For each cell:
+- If **no circle exists**: use `null`
+- If a circle exists:
+  - **grid_color**: `"GREEN"` (light green) or `"CYAN"` (light blue/aqua)
+  - **grid_size**: `0` (small, within cell) or `1` (large, slightly outside cell)
 
-* If **no circle exists**, use `null`
-* If a circle exists, extract:
-
-  * **grid_color**
-
-    * `"GREEN"` for light green circles
-    * `"CYAN"` for light blue / aqua circles
-  * **grid_size**
-
-    * `0` → small circle (clearly smaller than cell)
-    * `1` → large circle (occupies most of the cell)
-
-### Special Case — Overlay
-
-If the grid is fully covered by centered text such as `訓練 標準完成` and **no individual markers are visible**, then:
-
-* `grid_color`: array of 81 `null`
-* `grid_size`: array of 81 `null`
+**Double-check every cell. Count rows and columns carefully. Accuracy is critical.**
 
 ---
 
-## Output Rules
+## Other Fields
 
-* Return **ONLY** a raw JSON object
-* No markdown, no comments, no extra text
+- **title**: Training name below the date (e.g., `訓練 A`, `肩復樂訓練-簡單`)
+- **date**: Timestamp near top (e.g., `2024-06-11 14:24:32`)
+- **action_counts**: Integer under `完成動作數`
+- **elapse_time**: Time under `訓練時間` (e.g., `MM:SS.xx`)
 
 ---
 
-## JSON Schema
+## Special Case
 
-```json
+If grid is covered by text like `訓練 標準完成`:
+- `grid_color`: array of 81 `null`
+- `grid_size`: array of 81 `null`
+
+---
+
+## Output
+
+Return ONLY raw JSON, no markdown:
+
 {
   "title": string,
   "date": string,
@@ -73,23 +51,8 @@ If the grid is fully covered by centered text such as `訓練 標準完成` and 
   "grid_color": (string | null)[],
   "grid_size": (number | null)[]
 }
-```
 
----
-
-## Error Handling
-
-If **any** of the following are true:
-
-* The image is not a training-result screen
-* The 9×9 grid cannot be confidently identified
-* Required labels or metrics are missing
-
-Return **only**:
-
-```json
-{ "error": "Invalid training result image" }
-```
+If invalid image, return: { "error": "Invalid training result image" }
 """
 
 

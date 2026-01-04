@@ -17,9 +17,10 @@ MODEL_NAME = 'gemini-2.5-flash'
 
 
 def _get_client() -> genai.Client:
-    """Create and return a GenAI client."""
+    """Create and return a GenAI client for Gemini Developer API."""
     api_key = API_KEY_PATH.read_text().strip()
-    return genai.Client(api_key=api_key)
+    # Explicitly use Gemini Developer API (not Vertex AI)
+    return genai.Client(api_key=api_key, vertexai=False)
 
 
 def analyze_training_image(image_path: str) -> dict:
