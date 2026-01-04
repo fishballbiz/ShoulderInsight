@@ -12,7 +12,7 @@
 
     .upload-container {
         padding: 40px 20px;
-        max-width: 1200px;
+        max-width: 600px;
         margin: 0 auto;
     }
 
@@ -58,28 +58,19 @@
         box-shadow: 0 0 0 0.25rem rgba(100, 255, 218, 0.25);
     }
 
-    .slot-title {
-        color: #64ffda;
-        font-weight: 600;
-        margin-bottom: 5px;
-        font-size: 1.2rem;
-    }
-
-    .slot-desc {
+    .form-control::placeholder {
         color: #8892b0;
-        font-size: 0.9rem;
-        margin-bottom: 15px;
     }
 
     .dropzone {
         border: 2px dashed rgba(255, 255, 255, 0.3);
         border-radius: 15px;
-        padding: 30px;
+        padding: 40px 30px;
         text-align: center;
         cursor: pointer;
         transition: all 0.3s ease;
         background: rgba(255, 255, 255, 0.03);
-        min-height: 250px;
+        min-height: 280px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -106,9 +97,9 @@
     }
 
     .dropzone-icon {
-        font-size: 3rem;
+        font-size: 4rem;
         color: rgba(255, 255, 255, 0.5);
-        margin-bottom: 15px;
+        margin-bottom: 20px;
         transition: all 0.3s ease;
     }
 
@@ -120,19 +111,21 @@
     .dropzone-text {
         color: #ccd6f6;
         font-weight: 500;
+        font-size: 1.1rem;
     }
 
     .dropzone-subtext {
         color: #8892b0;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
+        margin-top: 8px;
     }
 
     .preview-image {
         max-width: 100%;
-        max-height: 180px;
-        border-radius: 8px;
+        max-height: 200px;
+        border-radius: 10px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
 
     .btn-primary-glow {
@@ -147,13 +140,18 @@
         transition: all 0.3s ease;
         box-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
         width: 100%;
-        max-width: 300px;
     }
 
     .btn-primary-glow:hover {
         transform: translateY(-2px);
         box-shadow: 0 0 30px rgba(79, 172, 254, 0.6);
         color: white;
+    }
+
+    .btn-primary-glow:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
     }
 
     .loading-overlay {
@@ -190,178 +188,238 @@
             transform: rotate(360deg);
         }
     }
+
+    .mobile-options {
+        display: none;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .mobile-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ccd6f6;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex: 1;
+    }
+
+    .mobile-btn:hover {
+        background: rgba(100, 255, 218, 0.1);
+        border-color: #64ffda;
+    }
+
+    .mobile-btn i {
+        margin-right: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .mobile-options {
+            display: flex;
+        }
+        .dropzone {
+            min-height: 200px;
+            padding: 30px 20px;
+        }
+        .dropzone-icon {
+            font-size: 3rem;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="upload-container">
-    <div class="text-center mb-5">
+    <div class="text-center mb-4">
         <h1 class="page-title">上傳檢查圖片</h1>
-        <p class="page-subtitle">請上傳病患的復健 App 截圖，系統將自動分析並生成診斷報告</p>
+        <p class="page-subtitle">拍攝或選擇病患的復健 App 截圖</p>
     </div>
 
     <form id="uploadForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="glass-card">
-            <div class="row">
-                <div class="col-md-6">
-                    <label for="patient_name" class="form-label mb-2">病患姓名 *</label>
-                    <input type="text" class="form-control" id="patient_name" name="patient_name" placeholder="請輸入姓名"
-                        required>
+            <label for="operator_name" class="form-label mb-2">操作者姓名 *</label>
+            <input type="text" class="form-control" id="operator_name" name="operator_name"
+                   placeholder="請輸入您的姓名" required>
+        </div>
+
+        <div class="glass-card">
+            <div class="dropzone" id="dropzone">
+                <div class="default-content">
+                    <i class="bi bi-camera dropzone-icon"></i>
+                    <p class="dropzone-text">點擊拍照或選擇圖片</p>
+                    <p class="dropzone-subtext">支援 JPG, PNG 格式</p>
                 </div>
+                <input type="file" id="fileInput" name="image" accept="image/*" style="display: none;">
+                <input type="file" id="cameraInput" name="camera_image" accept="image/*" capture="environment" style="display: none;">
+                <div class="preview-container" id="previewContainer" style="display: none;"></div>
+            </div>
+
+            <div class="mobile-options" id="mobileOptions">
+                <button type="button" class="mobile-btn" id="cameraBtn">
+                    <i class="bi bi-camera-fill"></i>拍照
+                </button>
+                <button type="button" class="mobile-btn" id="galleryBtn">
+                    <i class="bi bi-images"></i>相簿
+                </button>
             </div>
         </div>
 
-        <div class="row">
-            <!-- Slot A -->
-            <div class="col-md-4 mb-4">
-                <div class="glass-card h-100">
-                    <h5 class="slot-title">Slot A: 基本資料/訓練量</h5>
-                    <p class="slot-desc">上傳包含訓練次數、日期等基本資訊的截圖</p>
-                    <div class="dropzone" id="dropzone-a" data-slot="SLOT_A">
-                        <div class="default-content">
-                            <i class="bi bi-cloud-arrow-up dropzone-icon"></i>
-                            <p class="dropzone-text mb-1">點擊或拖曳圖片至此</p>
-                            <p class="dropzone-subtext">支援 JPG, PNG</p>
-                        </div>
-                        <input type="file" id="file-a" name="slot_a" accept="image/*" style="display: none;">
-                        <div class="preview-container" id="preview-a" style="display: none;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Slot B -->
-            <div class="col-md-4 mb-4">
-                <div class="glass-card h-100">
-                    <h5 class="slot-title">Slot B: 軌跡與熱圖</h5>
-                    <p class="slot-desc">上傳包含疼痛熱圖和動作軌跡的截圖</p>
-                    <div class="dropzone" id="dropzone-b" data-slot="SLOT_B">
-                        <div class="default-content">
-                            <i class="bi bi-cloud-arrow-up dropzone-icon"></i>
-                            <p class="dropzone-text mb-1">點擊或拖曳圖片至此</p>
-                            <p class="dropzone-subtext">支援 JPG, PNG</p>
-                        </div>
-                        <input type="file" id="file-b" name="slot_b" accept="image/*" style="display: none;">
-                        <div class="preview-container" id="preview-b" style="display: none;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Slot C -->
-            <div class="col-md-4 mb-4">
-                <div class="glass-card h-100">
-                    <h5 class="slot-title">Slot C: 綜合分析</h5>
-                    <p class="slot-desc">上傳包含左右對比或綜合分析的截圖</p>
-                    <div class="dropzone" id="dropzone-c" data-slot="SLOT_C">
-                        <div class="default-content">
-                            <i class="bi bi-cloud-arrow-up dropzone-icon"></i>
-                            <p class="dropzone-text mb-1">點擊或拖曳圖片至此</p>
-                            <p class="dropzone-subtext">支援 JPG, PNG</p>
-                        </div>
-                        <input type="file" id="file-c" name="slot_c" accept="image/*" style="display: none;">
-                        <div class="preview-container" id="preview-c" style="display: none;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="text-center mt-4">
-            <button type="submit" class="btn-primary-glow" id="submitBtn">
-                <i class="bi bi-magic me-2"></i>開始智能分析
-            </button>
-        </div>
+        <button type="submit" class="btn-primary-glow" id="submitBtn" disabled>
+            <i class="bi bi-arrow-right-circle me-2"></i>下一步
+        </button>
     </form>
 </div>
 
 <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner-custom"></div>
-    <h4 style="color: #64ffda; font-weight: 600;">AI 正在分析圖片</h4>
-    <p style="color: #8892b0;">請稍候，這可能需要幾秒鐘...</p>
+    <h4 style="color: #64ffda; font-weight: 600;">正在上傳圖片</h4>
+    <p style="color: #8892b0;">請稍候...</p>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const slots = ['a', 'b', 'c'];
+document.addEventListener('DOMContentLoaded', function() {
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const cameraInput = document.getElementById('cameraInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const defaultContent = dropzone.querySelector('.default-content');
+    const submitBtn = document.getElementById('submitBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const galleryBtn = document.getElementById('galleryBtn');
 
-        slots.forEach(slot => {
-            const dropzone = document.getElementById(`dropzone-${slot}`);
-            const fileInput = document.getElementById(`file-${slot}`);
-            const previewContainer = document.getElementById(`preview-${slot}`);
-            const defaultContent = dropzone.querySelector('.default-content');
+    let selectedFile = null;
 
-            // Click to upload
-            dropzone.addEventListener('click', () => fileInput.click());
+    function isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
 
-            // File input change
-            fileInput.addEventListener('change', function (e) {
-                handleFile(this.files[0], dropzone, previewContainer, defaultContent);
-            });
+    // Desktop: click dropzone to open file picker
+    dropzone.addEventListener('click', function(e) {
+        if (e.target.closest('.mobile-options')) return;
+        if (!isMobile()) {
+            fileInput.click();
+        }
+    });
 
-            // Drag and drop
-            dropzone.addEventListener('dragover', function (e) {
-                e.preventDefault();
-                this.classList.add('dragover');
-            });
+    // Mobile: camera button
+    cameraBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        cameraInput.click();
+    });
 
-            dropzone.addEventListener('dragleave', function (e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-            });
+    // Mobile: gallery button
+    galleryBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fileInput.click();
+    });
 
-            dropzone.addEventListener('drop', function (e) {
-                e.preventDefault();
-                this.classList.remove('dragover');
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    fileInput.files = e.dataTransfer.files;
-                    handleFile(file, dropzone, previewContainer, defaultContent);
-                }
-            });
-        });
+    // Handle file selection from gallery
+    fileInput.addEventListener('change', function() {
+        if (this.files[0]) {
+            handleFile(this.files[0]);
+        }
+    });
 
-        function handleFile(file, dropzone, previewContainer, defaultContent) {
-            if (!file) return;
+    // Handle file selection from camera
+    cameraInput.addEventListener('change', function() {
+        if (this.files[0]) {
+            handleFile(this.files[0]);
+            // Copy to main file input for form submission
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(this.files[0]);
+            fileInput.files = dataTransfer.files;
+        }
+    });
 
-            dropzone.classList.add('has-file');
-            defaultContent.style.display = 'none';
-            previewContainer.style.display = 'block';
+    // Drag and drop
+    dropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                previewContainer.innerHTML = `
+    dropzone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            fileInput.files = dataTransfer.files;
+            handleFile(file);
+        }
+    });
+
+    function handleFile(file) {
+        if (!file) return;
+
+        selectedFile = file;
+        dropzone.classList.add('has-file');
+        defaultContent.style.display = 'none';
+        previewContainer.style.display = 'block';
+        submitBtn.disabled = false;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewContainer.innerHTML = `
                 <img src="${e.target.result}" class="preview-image" alt="預覽圖">
-                <p class="small text-success mt-2 mb-0" style="color: #64ffda !important;"><i class="bi bi-check-circle"></i> ${file.name}</p>
+                <p class="mb-0" style="color: #64ffda;">
+                    <i class="bi bi-check-circle me-1"></i>${file.name}
+                </p>
+                <button type="button" class="btn btn-sm mt-2" id="removeBtn"
+                        style="color: #ff6b6b; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3);">
+                    <i class="bi bi-x-circle me-1"></i>移除
+                </button>
             `;
-            };
-            reader.readAsDataURL(file);
+
+            document.getElementById('removeBtn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                resetUpload();
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function resetUpload() {
+        selectedFile = null;
+        fileInput.value = '';
+        cameraInput.value = '';
+        dropzone.classList.remove('has-file');
+        defaultContent.style.display = 'flex';
+        previewContainer.style.display = 'none';
+        previewContainer.innerHTML = '';
+        submitBtn.disabled = true;
+    }
+
+    // Form submission
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const operatorName = document.getElementById('operator_name').value;
+        if (!operatorName.trim()) {
+            alert('請輸入操作者姓名');
+            return;
         }
 
-        // Form submission
-        document.getElementById('uploadForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+        if (!fileInput.files[0]) {
+            alert('請選擇或拍攝一張圖片');
+            return;
+        }
 
-            const patientName = document.getElementById('patient_name').value;
-            if (!patientName.trim()) {
-                alert('請輸入病患姓名');
-                return;
-            }
-
-            // Check if at least one file is uploaded
-            const hasFile = slots.some(slot => document.getElementById(`file-${slot}`).files.length > 0);
-            if (!hasFile) {
-                alert('請至少上傳一張圖片');
-                return;
-            }
-
-            // Show loading overlay
-            document.getElementById('loadingOverlay').classList.add('active');
-
-            // Submit form
-            this.submit();
-        });
+        document.getElementById('loadingOverlay').classList.add('active');
+        this.submit();
     });
+});
 </script>
 {% endblock %}
