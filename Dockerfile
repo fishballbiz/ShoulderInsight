@@ -23,13 +23,21 @@ RUN pip install \
     "Django>=5.0" \
     daphne \
     google-genai \
-    weasyprint
+    weasyprint \
+    whitenoise
 
 # Copy project
 COPY . /app/
 
-# Expose port
-EXPOSE 8000
+# Create required directories
+RUN mkdir -p /media/uploads
 
-# Default command
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "config.asgi:application"]
+# Collect static files at build time
+RUN python manage.py collectstatic --noinput
+
+# Default port (Cloud Run uses PORT env var)
+ENV PORT=8080
+EXPOSE 8080
+
+# Default command (create session dir at runtime, then start server)
+CMD mkdir -p /tmp/django_sessions && daphne -b 0.0.0.0 -p $PORT config.asgi:application

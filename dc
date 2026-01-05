@@ -9,6 +9,7 @@ GCP_PROJECT="aishoulder"
 GCP_REGION="asia-east1"
 IMAGE_NAME="aishoulder"
 REGISTRY="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${IMAGE_NAME}/${IMAGE_NAME}"
+STATIC_BUCKET="${GCP_PROJECT}-static"
 
 function show_help {
     echo "Usage: ./dc [command]"
@@ -89,10 +90,11 @@ case "$1" in
             --allow-unauthenticated \
             --min-instances=0 \
             --max-instances=1 \
-            --memory=256Mi \
+            --memory=512Mi \
             --cpu=1 \
             --concurrency=10 \
-            --timeout=60
+            --timeout=60 \
+            --cpu-boost
 
         # Clean up old images (keep only latest)
         echo "Cleaning up old images..."
