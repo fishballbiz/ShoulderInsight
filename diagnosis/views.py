@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
-from .disease_mapping import find_matching_diseases
+from .disease_mapping import find_matching_diseases, get_all_diseases
 
 logger = logging.getLogger(__name__)
 
@@ -140,3 +140,11 @@ def result_view(request, examination_id):
     }
 
     return render(request, 'diagnosis/result.html', context)
+
+
+def diseases_view(request):
+    """
+    Display all supported diseases with grid patterns and descriptions.
+    """
+    diseases = get_all_diseases()
+    return render(request, 'diagnosis/diseases.html', {'diseases': diseases})

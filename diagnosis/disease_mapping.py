@@ -27,6 +27,11 @@ def _load_diseases() -> list[dict]:
         return json.load(f)
 
 
+def get_all_diseases() -> list[dict]:
+    """Get all diseases with their grid patterns for display."""
+    return _load_diseases()
+
+
 def _calculate_match_score(
     result_grid_color: list,
     result_grid_size: list,

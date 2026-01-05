@@ -1,0 +1,326 @@
+{% extends 'diagnosis/base.html' %}
+{% load static %}
+
+{% block title %}支援症狀列表 - 智慧肩部復健 AI 診斷平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    .diseases-container {
+        padding: 40px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        color: var(--text-muted);
+        font-size: 1.1rem;
+    }
+
+    .disease-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .disease-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .disease-title {
+        flex: 1;
+    }
+
+    .disease-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 4px;
+    }
+
+    .disease-name-en {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+
+    .disease-id {
+        background: var(--bg-light);
+        color: var(--text-muted);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .disease-content {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 30px;
+    }
+
+    @media (max-width: 768px) {
+        .disease-content {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .grid-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        gap: 3px;
+        width: 180px;
+        background: #e2e8f0;
+        padding: 8px;
+        border-radius: 12px;
+    }
+
+    .grid-cell {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: #cbd5e0;
+        border: 1px solid #a0aec0;
+    }
+
+    .grid-cell.RED {
+        background: linear-gradient(135deg, #fc8181, #e53e3e);
+        border-color: #c53030;
+    }
+
+    .grid-cell.YELLOW {
+        background: linear-gradient(135deg, #f6e05e, #d69e2e);
+        border-color: #b7791f;
+    }
+
+    .grid-cell.BLUE {
+        background: linear-gradient(135deg, #63b3ed, #3182ce);
+        border-color: #2b6cb0;
+    }
+
+    .grid-cell.GREEN {
+        background: linear-gradient(135deg, #68d391, #38a169);
+        border-color: #2f855a;
+    }
+
+    .grid-legend {
+        display: flex;
+        gap: 12px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    .legend-dot.red { background: #e53e3e; }
+    .legend-dot.yellow { background: #d69e2e; }
+    .legend-dot.blue { background: #3182ce; }
+
+    .info-section {
+        flex: 1;
+    }
+
+    .section-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .symptoms-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 20px;
+    }
+
+    .symptom-tag {
+        background: #edf2f7;
+        color: var(--text-dark);
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+
+    .disease-report {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 12px;
+        padding: 16px;
+        line-height: 1.8;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+
+    .disease-report p {
+        margin-bottom: 12px;
+        text-align: justify;
+    }
+
+    .disease-report p:last-child {
+        margin-bottom: 0;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+
+    .back-link:hover {
+        color: var(--primary-light);
+    }
+
+    .disease-count {
+        background: var(--primary-color);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        margin-left: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="diseases-container">
+    <a href="{% url 'diagnosis:upload' %}" class="back-link">
+        <i class="bi bi-arrow-left"></i> 返回上傳頁面
+    </a>
+
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-clipboard2-pulse me-2"></i>支援症狀列表
+            <span class="disease-count">{{ diseases|length }}</span>
+        </h1>
+        <p>以下為本系統可識別的肩部相關症狀及其對應的網格特徵</p>
+    </div>
+
+    {% for disease in diseases %}
+    <div class="disease-card">
+        <div class="disease-header">
+            <div class="disease-title">
+                <div class="disease-name">
+                    {{ disease.name_zh }}
+                    <span class="disease-name-en">{{ disease.name_en }}</span>
+                </div>
+            </div>
+            <span class="disease-id">#{{ disease.id }}</span>
+        </div>
+
+        <div class="disease-content">
+            <div class="grid-section">
+                <div class="grid-container" data-index="{{ forloop.counter0 }}">
+                </div>
+                <div class="grid-legend">
+                    <div class="legend-item">
+                        <span class="legend-dot red"></span>
+                        <span>高度相關</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot yellow"></span>
+                        <span>中度相關</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot blue"></span>
+                        <span>輕度相關</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="section-label">
+                    <i class="bi bi-exclamation-triangle"></i> 常見症狀
+                </div>
+                <div class="symptoms-list">
+                    {% for symptom in disease.symptoms %}
+                    <span class="symptom-tag">{{ symptom }}</span>
+                    {% endfor %}
+                </div>
+
+                {% if disease.report %}
+                <div class="section-label">
+                    <i class="bi bi-file-text"></i> 詳細說明
+                </div>
+                <div class="disease-report">
+                    {{ disease.report|linebreaks }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{{ diseases|json_script:"diseasesData" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const diseasesData = JSON.parse(document.getElementById('diseasesData').textContent);
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.grid-container').forEach(function(container) {
+        const index = parseInt(container.dataset.index);
+        const disease = diseasesData[index];
+        if (!disease || !disease.grid_color) return;
+
+        const gridColors = disease.grid_color;
+
+        for (let i = 0; i < 81; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+
+            const color = gridColors[i];
+            if (color) {
+                cell.classList.add(color);
+            }
+
+            container.appendChild(cell);
+        }
+    });
+});
+</script>
+{% endblock %}
