@@ -150,6 +150,14 @@ def result_view(request, examination_id):
             d['match_percent'] < 50 for d in diseases
         )
 
+    # Get image URL for display
+    image_path = request.session.get('image_path', '')
+    image_url = ''
+    if image_path and os.path.exists(image_path):
+        # Convert absolute path to media URL
+        filename = os.path.basename(image_path)
+        image_url = f'{settings.MEDIA_URL}uploads/{filename}'
+
     context = {
         'examination_id': examination_id,
         'operator_name': operator_name,
@@ -158,6 +166,7 @@ def result_view(request, examination_id):
         'has_error': has_error,
         'left_hand': hand_analysis['left_hand'],
         'right_hand': hand_analysis['right_hand'],
+        'image_url': image_url,
     }
 
     return render(request, 'diagnosis/result.html', context)
