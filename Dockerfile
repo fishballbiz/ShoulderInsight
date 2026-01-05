@@ -24,7 +24,9 @@ RUN pip install \
     daphne \
     google-genai \
     weasyprint \
-    whitenoise
+    whitenoise \
+    opencv-python-headless \
+    numpy
 
 # Copy project
 COPY . /app/

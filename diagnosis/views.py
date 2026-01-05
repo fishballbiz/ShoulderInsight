@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
 from .disease_mapping import find_matching_diseases, get_all_diseases
+from .image_processing.cell_analyzer import process_image
 
 logger = logging.getLogger(__name__)
 
@@ -148,3 +149,51 @@ def diseases_view(request):
     """
     diseases = get_all_diseases()
     return render(request, 'diagnosis/diseases.html', {'diseases': diseases})
+
+
+def grid_poc_view(request):
+    """
+    Proof of concept page for grid detection testing.
+    Processes test images and displays detection results.
+    """
+    import base64
+    import cv2
+    from pathlib import Path
+
+    test_images_dir = Path(settings.BASE_DIR) / 'data' / 'test_inputs'
+    results = []
+
+    if test_images_dir.exists():
+        for image_path in sorted(test_images_dir.glob('*.jpeg'))[:6]:
+            result = process_image(str(image_path))
+
+            if 'error' in result:
+                results.append({
+                    'filename': image_path.name,
+                    'error': result['error']
+                })
+            else:
+                # Encode visualization as base64
+                viz = result['visualization']
+                _, buffer = cv2.imencode('.jpg', viz)
+                viz_base64 = base64.b64encode(buffer).decode('utf-8')
+
+                # Also encode original for comparison
+                original = cv2.imread(str(image_path))
+                _, orig_buffer = cv2.imencode('.jpg', original)
+                orig_base64 = base64.b64encode(orig_buffer).decode('utf-8')
+
+                results.append({
+                    'filename': image_path.name,
+                    'original_base64': orig_base64,
+                    'visualization_base64': viz_base64,
+                    'grid_info': {
+                        'bounds': result['grid_info']['bounds'],
+                        'cell_size': result['grid_info']['cell_size']
+                    },
+                    'grid_color': result['analysis']['grid_color'],
+                    'grid_size': result['analysis']['grid_size'],
+                    'cell_details': result['analysis']['cell_details']
+                })
+
+    return render(request, 'diagnosis/grid_poc.html', {'results': results})
