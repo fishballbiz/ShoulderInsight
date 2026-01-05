@@ -232,7 +232,6 @@
     }
 
     .match-badge {
-        background: linear-gradient(135deg, var(--accent-color), #ed8936);
         color: white;
         padding: 4px 12px;
         border-radius: 20px;
@@ -240,32 +239,393 @@
         font-weight: 600;
     }
 
+    .match-badge.match-high {
+        background: linear-gradient(135deg, #e53e3e, #c53030);
+    }
+
+    .match-badge.match-medium {
+        background: linear-gradient(135deg, var(--accent-color), #ed8936);
+    }
+
+    .match-badge.match-low {
+        background: linear-gradient(135deg, #a0aec0, #718096);
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #38a169, #2f855a);
+        border: none;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(56, 161, 105, 0.4);
+        color: white;
+    }
+
+    /* Print Header - hidden on screen */
+    .print-header {
+        display: none;
+    }
+
+    /* Footer - visible on screen */
+    .print-footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .print-footer-content {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .print-footer-disclaimer {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    /* Report Meta */
+    .report-meta {
+        background: var(--bg-light);
+    }
+
+    .report-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .report-meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .report-meta-item label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .report-meta-item span {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .report-id {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 0.9rem;
+        word-break: break-all;
+    }
+
+    .screen-only {
+        display: inline;
+    }
+
+    /* Print Styles */
+    @media print {
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            background: white !important;
+            font-size: 11pt;
+            line-height: 1.4;
+        }
+
+        .result-container {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        /* Show print header */
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4299e1;
+        }
+
+        .report-title {
+            font-size: 16pt;
+            font-weight: 600;
+            color: #2b6cb0;
+        }
+
+        /* Hide screen-only elements */
+        .screen-only,
+        .action-buttons,
+        .debug-section {
+            display: none !important;
+        }
+
+        .card {
+            box-shadow: none;
+            border: 1px solid #cbd5e0;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            margin-bottom: 15px;
+            padding: 15px;
+        }
+
+        /* Header card for print */
+        .header-card {
+            background: #ebf8ff !important;
+            border: 2px solid #4299e1;
+            color: #2b6cb0 !important;
+        }
+
+        .header-card h1 {
+            color: #2b6cb0 !important;
+            font-size: 14pt;
+        }
+
+        .header-info-item {
+            background: white !important;
+            border: 1px solid #bee3f8;
+            color: #2b6cb0;
+        }
+
+        .operator-badge {
+            font-size: 11pt;
+        }
+
+        .operator-badge strong {
+            font-size: 12pt;
+        }
+
+        /* Report meta for print */
+        .report-meta {
+            background: #f7fafc !important;
+        }
+
+        .report-id {
+            font-size: 9pt;
+        }
+
+        /* Success/failure badge */
+        .success-badge {
+            background: #48bb78 !important;
+            color: white !important;
+        }
+
+        .failed-badge {
+            background: #e53e3e !important;
+        }
+
+        /* Disease cards */
+        .disease-card {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            border-left: 3px solid #4299e1 !important;
+        }
+
+        .disease-report {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            background: #f7fafc !important;
+            font-size: 10pt;
+        }
+
+        /* Grid visualization */
+        .grid-container {
+            max-width: 200px;
+        }
+
+        .grid-cell {
+            border: 1px solid #cbd5e0;
+        }
+
+        .grid-cell.GREEN {
+            background: #48bb78 !important;
+            border-color: #38a169 !important;
+        }
+
+        .grid-cell.CYAN {
+            background: #4299e1 !important;
+            border-color: #3182ce !important;
+        }
+
+        /* Match badges */
+        .match-badge {
+            color: white !important;
+        }
+
+        .match-badge.match-high {
+            background: #e53e3e !important;
+        }
+
+        .match-badge.match-medium {
+            background: #dd6b20 !important;
+        }
+
+        .match-badge.match-low {
+            background: #718096 !important;
+        }
+
+        /* Symptoms overview */
+        .symptoms-overview {
+            background: #ebf8ff !important;
+            border: 1px solid #bee3f8 !important;
+        }
+
+        .symptom-tag {
+            background: white !important;
+            border: 1px solid #cbd5e0 !important;
+            font-size: 9pt;
+        }
+
+        .symptom-list li {
+            background: #edf2f7 !important;
+            font-size: 8pt;
+            padding: 2px 8px;
+        }
+
+        /* Section titles */
+        .section-title {
+            font-size: 12pt;
+            color: #2b6cb0 !important;
+        }
+
+        .section-title i {
+            display: none;
+        }
+
+        /* Info grid */
+        .info-item {
+            background: #f7fafc !important;
+        }
+
+        /* Page settings - extra bottom margin for fixed footer */
+        @page {
+            margin: 1.5cm 1.5cm 3cm 1.5cm;
+            size: A4;
+        }
+
+        @page :first {
+            margin-top: 1cm;
+        }
+
+        /* Footer for print - appears on all pages */
+        .print-footer {
+            display: block !important;
+            position: fixed;
+            bottom: 0.5cm;
+            left: 1.5cm;
+            right: 1.5cm;
+            padding: 8px 0;
+            background: white;
+            font-size: 9pt;
+        }
+
+        .print-footer-content {
+            display: flex;
+            justify-content: space-between;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+
+        .print-footer-disclaimer {
+            text-align: left;
+            color: #718096;
+            line-height: 1.4;
+        }
+    }
+
     .symptom-list {
         list-style: none;
         padding: 0;
-        margin: 0;
+        margin: 0 0 12px 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
     }
 
     .symptom-list li {
-        padding: 8px 0;
-        border-bottom: 1px solid #edf2f7;
+        background: #edf2f7;
+        color: var(--text-dark);
+        font-size: 0.85rem;
+        padding: 4px 10px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .disease-report {
+        margin-top: 16px;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 12px;
+        line-height: 1.8;
         color: var(--text-dark);
         font-size: 0.95rem;
+    }
+
+    .disease-report p {
+        margin-bottom: 16px;
+        text-align: justify;
+    }
+
+    .disease-report p:last-child {
+        margin-bottom: 0;
+    }
+
+    .symptoms-overview {
+        background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
+        border: 1px solid #bee3f8;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .symptoms-overview-title {
+        color: var(--primary-color);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
         display: flex;
-        align-items: flex-start;
-        gap: 10px;
+        align-items: center;
+        gap: 8px;
     }
 
-    .symptom-list li:last-child {
-        border-bottom: none;
+    .symptoms-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
-    .symptom-list li::before {
-        content: "•";
+    .symptom-tag {
+        background: white;
+        color: var(--text-dark);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        border: 1px solid #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .symptom-tag i {
         color: var(--accent-color);
-        font-weight: bold;
-        font-size: 1.2rem;
-        line-height: 1;
+        font-size: 0.7rem;
     }
 
     .no-match-message {
@@ -390,21 +750,22 @@
 
 {% block content %}
 <div class="result-container">
+    <!-- Print Header (only visible when printing) -->
+    <div class="print-header">
+        <div class="report-title">智慧肩部復健 AI 分析報告</div>
+    </div>
+
     <!-- Header with Operator Info -->
     <div class="card header-card">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
             <div>
                 <h1>
-                    <i class="bi bi-clipboard2-data me-2"></i>AI 分析結果
+                    <i class="bi bi-clipboard2-data me-2 screen-only"></i>AI 分析結果
                 </h1>
                 <div class="header-info">
                     <div class="header-info-item operator-badge">
                         <i class="bi bi-person-fill"></i>
-                        <span>分析師: {{ operator_name }}</span>
-                    </div>
-                    <div class="header-info-item">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <span>{{ examination_id|truncatechars:12 }}</span>
+                        <span>分析師: <strong>{{ operator_name }}</strong></span>
                     </div>
                 </div>
             </div>
@@ -418,6 +779,20 @@
                     <i class="bi bi-check-circle"></i>分析完成
                 </span>
                 {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Meta Info -->
+    <div class="card report-meta">
+        <div class="report-meta-grid">
+            <div class="report-meta-item">
+                <label>報告編號</label>
+                <span class="report-id">{{ examination_id }}</span>
+            </div>
+            <div class="report-meta-item">
+                <label>報告日期</label>
+                <span>{% now "Y年n月j日" %}</span>
             </div>
         </div>
     </div>
@@ -491,10 +866,35 @@
         </div>
     </div>
 
-    <!-- Matched Diseases -->
+    <!-- Common Symptoms Overview -->
+    {% if matched_diseases %}
     <div class="card">
         <div class="section-title">
-            <i class="bi bi-clipboard2-pulse"></i> 可能症狀分析
+            <i class="bi bi-lightning-charge"></i> 常見症狀總覽
+        </div>
+        <div class="symptoms-overview">
+            <div class="symptoms-overview-title">
+                <i class="bi bi-exclamation-triangle"></i>
+                根據分析結果，可能出現以下症狀
+            </div>
+            <div class="symptoms-tags">
+                {% for disease in matched_diseases %}
+                    {% for symptom in disease.symptoms %}
+                    <span class="symptom-tag">
+                        <i class="bi bi-circle-fill"></i>
+                        {{ symptom }}
+                    </span>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Matched Diseases Detail -->
+    <div class="card">
+        <div class="section-title">
+            <i class="bi bi-clipboard2-pulse"></i> 詳細症狀分析
         </div>
         {% if matched_diseases %}
             {% for disease in matched_diseases %}
@@ -504,13 +904,18 @@
                         <span class="disease-name">{{ disease.name_zh }}</span>
                         <span class="disease-name-en">{{ disease.name_en }}</span>
                     </div>
-                    <span class="match-badge">匹配度 {{ disease.match_percent }}%</span>
+                    <span class="match-badge {% if disease.match_percent >= 70 %}match-high{% elif disease.match_percent >= 50 %}match-medium{% else %}match-low{% endif %}">匹配度 {{ disease.match_percent }}%</span>
                 </div>
                 <ul class="symptom-list">
                     {% for symptom in disease.symptoms %}
                     <li>{{ symptom }}</li>
                     {% endfor %}
                 </ul>
+                {% if disease.report %}
+                <div class="disease-report">
+                    {{ disease.report|linebreaks }}
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         {% else %}
@@ -526,9 +931,9 @@
 
     <!-- Actions -->
     <div class="action-buttons">
-        <a href="{% url 'diagnosis:upload' %}" class="btn-secondary-custom">
-            <i class="bi bi-plus-circle"></i> 新增分析
-        </a>
+        <button onclick="window.print()" class="btn-print">
+            <i class="bi bi-printer"></i> 列印報告
+        </button>
         <a href="{% url 'diagnosis:upload' %}" class="btn-primary-custom">
             <i class="bi bi-house"></i> 返回首頁
         </a>
@@ -541,6 +946,17 @@
             <div class="raw-data-container">
                 <pre id="rawDataPre">{{ raw_data|safe }}</pre>
             </div>
+        </div>
+    </div>
+
+    <!-- Print Footer -->
+    <div class="print-footer">
+        <div class="print-footer-content">
+            <span>報告編號: {{ examination_id }}</span>
+            <span>報告日期: {% now "Y年n月j日 H:i" %}</span>
+        </div>
+        <div class="print-footer-disclaimer">
+            本報告由 AI 系統自動生成，分析結果可能存在誤差，僅供參考。如有任何疑慮，請諮詢專業醫師。
         </div>
     </div>
 </div>

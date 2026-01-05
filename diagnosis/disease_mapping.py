@@ -15,6 +15,7 @@ class MatchedDisease(TypedDict):
     name_zh: str
     name_en: str
     symptoms: list[str]
+    report: str
     score: int
     max_score: int
     match_percent: float
@@ -98,6 +99,7 @@ def find_matching_diseases(
                 "name_zh": disease["name_zh"],
                 "name_en": disease["name_en"],
                 "symptoms": disease["symptoms"],
+                "report": disease.get("report", ""),
                 "score": score,
                 "max_score": k,
                 "match_percent": round(match_percent * 100, 1)
