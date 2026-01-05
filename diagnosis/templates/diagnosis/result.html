@@ -145,30 +145,46 @@
         border: 2px solid #cbd5e0;
     }
 
-    .grid-cell.GREEN {
-        background: linear-gradient(135deg, #48bb78, #68d391);
+    /* Green (Right hand) - severity gradient light to dark */
+    .grid-cell.GREEN.severity-1 {
+        background: rgba(72, 187, 120, 0.35);
+        border-color: rgba(56, 161, 105, 0.5);
+    }
+
+    .grid-cell.GREEN.severity-2 {
+        background: rgba(72, 187, 120, 0.55);
+        border-color: rgba(56, 161, 105, 0.7);
+    }
+
+    .grid-cell.GREEN.severity-3 {
+        background: rgba(72, 187, 120, 0.75);
+        border-color: rgba(56, 161, 105, 0.85);
+    }
+
+    .grid-cell.GREEN.severity-4 {
+        background: rgb(72, 187, 120);
         border-color: #38a169;
     }
 
-    .grid-cell.CYAN {
-        background: linear-gradient(135deg, #4299e1, #63b3ed);
+    /* Cyan (Left hand) - severity gradient light to dark */
+    .grid-cell.CYAN.severity-1 {
+        background: rgba(66, 153, 225, 0.35);
+        border-color: rgba(49, 130, 206, 0.5);
+    }
+
+    .grid-cell.CYAN.severity-2 {
+        background: rgba(66, 153, 225, 0.55);
+        border-color: rgba(49, 130, 206, 0.7);
+    }
+
+    .grid-cell.CYAN.severity-3 {
+        background: rgba(66, 153, 225, 0.75);
+        border-color: rgba(49, 130, 206, 0.85);
+    }
+
+    .grid-cell.CYAN.severity-4 {
+        background: rgb(66, 153, 225);
         border-color: #3182ce;
-    }
-
-    .grid-cell.size-1 {
-        transform: scale(0.5);
-    }
-
-    .grid-cell.size-2 {
-        transform: scale(0.7);
-    }
-
-    .grid-cell.size-3 {
-        transform: scale(0.85);
-    }
-
-    .grid-cell.size-4 {
-        transform: scale(1.0);
     }
 
     .grid-legend {
@@ -202,31 +218,41 @@
     }
 
     .severity-legend {
-        margin-top: 8px;
+        margin-top: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
     }
 
-    .legend-dot.severity-1 {
-        width: 8px;
-        height: 8px;
-        background: #a0aec0;
+    .severity-gradient-bar {
+        width: 200px;
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg,
+            rgba(160, 174, 192, 0.4) 0%,
+            rgba(160, 174, 192, 0.6) 25%,
+            rgba(160, 174, 192, 0.8) 50%,
+            rgba(107, 114, 128, 1) 100%
+        );
+        border: 1px solid #cbd5e0;
     }
 
-    .legend-dot.severity-2 {
-        width: 11px;
-        height: 11px;
-        background: #68d391;
+    .severity-labels {
+        display: flex;
+        justify-content: space-between;
+        width: 200px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
     }
 
-    .legend-dot.severity-3 {
-        width: 14px;
-        height: 14px;
-        background: #f6ad55;
+    .severity-labels span:first-child {
+        color: #a0aec0;
     }
 
-    .legend-dot.severity-4 {
-        width: 17px;
-        height: 17px;
-        background: #fc8181;
+    .severity-labels span:last-child {
+        color: #4a5568;
+        font-weight: 600;
     }
 
     /* Hand Section Styles */
@@ -259,6 +285,150 @@
 
     .hand-icon {
         font-size: 1.5rem;
+    }
+
+    .hand-icons-pair {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+    }
+
+    .hand-emoji {
+        font-size: 1.5rem;
+        line-height: 1;
+    }
+
+    .hand-emoji-left {
+        transform: scaleX(-1);
+    }
+
+    .hand-emoji-outline {
+        opacity: 0.25;
+        filter: grayscale(100%);
+    }
+
+    .tag-indicator {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+
+    .disease-tag.high-prob .tag-indicator {
+        background: #c53030;
+        color: white;
+    }
+
+    .disease-tag.suspect .tag-indicator {
+        background: #c05621;
+        color: white;
+    }
+
+    .disease-tag.no-disease .tag-indicator {
+        background: #276749;
+        color: white;
+    }
+
+    .disease-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 10px;
+    }
+
+    .disease-summary-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 500;
+        margin-right: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .disease-summary-tag {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .left-hand .disease-summary-tag {
+        background: linear-gradient(135deg, #4299e1, #63b3ed);
+        color: white;
+    }
+
+    .right-hand .disease-summary-tag {
+        background: linear-gradient(135deg, #48bb78, #68d391);
+        color: white;
+    }
+
+    .disease-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 16px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin: 2px 4px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .disease-tag i {
+        font-size: 0.75rem;
+    }
+
+    .disease-tag.high-prob {
+        background: rgba(229, 62, 62, 0.1);
+        color: #c53030;
+        border: 1px solid rgba(229, 62, 62, 0.3);
+    }
+
+    .disease-tag.high-prob:hover {
+        background: rgba(229, 62, 62, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .disease-tag.suspect {
+        background: rgba(237, 137, 54, 0.1);
+        color: #c05621;
+        border: 1px solid rgba(237, 137, 54, 0.3);
+    }
+
+    .disease-tag.suspect:hover {
+        background: rgba(237, 137, 54, 0.2);
+        transform: translateY(-1px);
+    }
+
+    .disease-tag.no-disease {
+        background: rgba(72, 187, 120, 0.1);
+        color: #276749;
+        border: 1px solid rgba(72, 187, 120, 0.3);
+    }
+
+    a.disease-tag {
+        cursor: pointer;
+    }
+
+    .disease-card.highlight {
+        animation: highlight-pulse 1s ease-out;
+    }
+
+    @keyframes highlight-pulse {
+        0% { box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.6); }
+        100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); }
     }
 
     .hand-dot-count {
@@ -950,22 +1120,11 @@
                     <span>右手 (GREEN)</span>
                 </div>
             </div>
-            <div class="grid-legend severity-legend">
-                <div class="legend-item">
-                    <span class="legend-dot severity-1"></span>
-                    <span>1 輕微</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot severity-2"></span>
-                    <span>2 中等</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot severity-3"></span>
-                    <span>3 嚴重</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-dot severity-4"></span>
-                    <span>4 很嚴重</span>
+            <div class="severity-legend">
+                <div class="severity-gradient-bar"></div>
+                <div class="severity-labels">
+                    <span>輕微</span>
+                    <span>嚴重</span>
                 </div>
             </div>
         </div>
@@ -974,13 +1133,30 @@
     <!-- Left Hand Analysis -->
     <div class="card hand-section left-hand">
         <div class="hand-header left-hand">
-            <i class="bi bi-hand-index-thumb hand-icon"></i>
+            <span class="hand-icons-pair">
+                <span class="hand-emoji hand-emoji-left">🤚</span>
+                <span class="hand-emoji hand-emoji-outline">🤚</span>
+            </span>
             <span>左手分析</span>
             <span class="hand-dot-count">{{ left_hand.dot_count }} 個偵測點</span>
         </div>
+        <!-- Disease Summary -->
+        <div class="disease-summary">
+            <span class="disease-summary-label"><i class="bi bi-clipboard2-pulse"></i>分析結果:</span>
+            {% if left_hand.diseases %}
+                {% for disease in left_hand.diseases %}
+                <a href="#" class="disease-tag {% if disease.match_percent >= 50 %}high-prob{% else %}suspect{% endif %}" data-scroll="left-{{ forloop.counter0 }}" data-index="{{ forloop.counter0 }}">
+                    <span class="tag-indicator">{% if disease.match_percent >= 50 %}!{% else %}?{% endif %}</span>
+                    <span>{{ disease.name_zh }}</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <span class="disease-tag no-disease"><span class="tag-indicator">✓</span><span>無異常</span></span>
+            {% endif %}
+        </div>
         {% if left_hand.diseases %}
             {% for disease in left_hand.diseases %}
-            <div class="card disease-card left-hand-disease">
+            <div class="card disease-card left-hand-disease" data-hand="left" data-match="{{ disease.match_percent }}">
                 <div class="disease-header">
                     <div>
                         <span class="disease-name">{{ disease.name_zh }}</span>
@@ -1012,13 +1188,30 @@
     <!-- Right Hand Analysis -->
     <div class="card hand-section right-hand">
         <div class="hand-header right-hand">
-            <i class="bi bi-hand-index-thumb-fill hand-icon"></i>
+            <span class="hand-icons-pair">
+                <span class="hand-emoji hand-emoji-left hand-emoji-outline">🤚</span>
+                <span class="hand-emoji">🤚</span>
+            </span>
             <span>右手分析</span>
             <span class="hand-dot-count">{{ right_hand.dot_count }} 個偵測點</span>
         </div>
+        <!-- Disease Summary -->
+        <div class="disease-summary">
+            <span class="disease-summary-label"><i class="bi bi-clipboard2-pulse"></i>分析結果:</span>
+            {% if right_hand.diseases %}
+                {% for disease in right_hand.diseases %}
+                <a href="#" class="disease-tag {% if disease.match_percent >= 50 %}high-prob{% else %}suspect{% endif %}" data-scroll="right-{{ forloop.counter0 }}" data-index="{{ forloop.counter0 }}">
+                    <span class="tag-indicator">{% if disease.match_percent >= 50 %}!{% else %}?{% endif %}</span>
+                    <span>{{ disease.name_zh }}</span>
+                </a>
+                {% endfor %}
+            {% else %}
+                <span class="disease-tag no-disease"><span class="tag-indicator">✓</span><span>無異常</span></span>
+            {% endif %}
+        </div>
         {% if right_hand.diseases %}
             {% for disease in right_hand.diseases %}
-            <div class="card disease-card right-hand-disease">
+            <div class="card disease-card right-hand-disease" data-hand="right" data-match="{{ disease.match_percent }}">
                 <div class="disease-header">
                     <div>
                         <span class="disease-name">{{ disease.name_zh }}</span>
@@ -1154,19 +1347,40 @@ document.addEventListener('DOMContentLoaded', function() {
             cell.className = 'grid-cell';
 
             const color = gridColor[i];
-            const size = gridSize[i];
+            const severity = gridSize[i];
 
             if (color) {
                 cell.classList.add(color);
-            }
-
-            if (size !== null && size !== undefined && size > 0) {
-                cell.classList.add('size-' + size);
+                // Add severity class for color gradient
+                if (severity !== null && severity !== undefined && severity > 0) {
+                    cell.classList.add('severity-' + Math.min(4, Math.max(1, severity)));
+                } else {
+                    cell.classList.add('severity-1');
+                }
             }
 
             gridContainer.appendChild(cell);
         }
     }
+
+    // Scroll to disease functionality
+    document.querySelectorAll('a.disease-tag[data-scroll]').forEach(tag => {
+        tag.addEventListener('click', function(e) {
+            e.preventDefault();
+            const scrollType = this.dataset.scroll;
+            const [hand, indexStr] = scrollType.split('-');
+            const index = parseInt(indexStr, 10);
+
+            // Find the specific disease card by index
+            const cards = document.querySelectorAll(`.disease-card[data-hand="${hand}"]`);
+            if (cards[index]) {
+                const card = cards[index];
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.classList.add('highlight');
+                setTimeout(() => card.classList.remove('highlight'), 1000);
+            }
+        });
+    });
 });
 </script>
 {% endblock %}

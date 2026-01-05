@@ -140,6 +140,16 @@ def result_view(request, examination_id):
         }
         hand_analysis = find_matching_diseases_by_hand(grid_data)
 
+    # Calculate summary flags for each hand
+    for hand_key in ['left_hand', 'right_hand']:
+        diseases = hand_analysis[hand_key].get('diseases', [])
+        hand_analysis[hand_key]['has_high_prob'] = any(
+            d['match_percent'] >= 50 for d in diseases
+        )
+        hand_analysis[hand_key]['has_suspect'] = any(
+            d['match_percent'] < 50 for d in diseases
+        )
+
     context = {
         'examination_id': examination_id,
         'operator_name': operator_name,
