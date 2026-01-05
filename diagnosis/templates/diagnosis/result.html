@@ -229,9 +229,80 @@
         background: #fc8181;
     }
 
+    /* Hand Section Styles */
+    .hand-section {
+        margin-bottom: 32px;
+    }
+
+    .hand-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 16px 20px;
+        border-radius: 12px;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    .hand-header.left-hand {
+        background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+        color: #2b6cb0;
+        border-left: 5px solid #4299e1;
+    }
+
+    .hand-header.right-hand {
+        background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+        color: #276749;
+        border-left: 5px solid #48bb78;
+    }
+
+    .hand-icon {
+        font-size: 1.5rem;
+    }
+
+    .hand-dot-count {
+        margin-left: auto;
+        font-size: 0.9rem;
+        font-weight: 500;
+        padding: 4px 12px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.7);
+    }
+
+    .no-dots-message {
+        text-align: center;
+        padding: 30px;
+        color: var(--text-muted);
+        background: var(--bg-light);
+        border-radius: 12px;
+    }
+
+    .no-dots-message i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .left-hand .no-dots-message i {
+        color: #4299e1;
+    }
+
+    .right-hand .no-dots-message i {
+        color: #48bb78;
+    }
+
     .disease-card {
         border-left: 4px solid var(--primary-color);
         margin-bottom: 16px;
+    }
+
+    .disease-card.left-hand-disease {
+        border-left-color: #4299e1;
+    }
+
+    .disease-card.right-hand-disease {
+        border-left-color: #48bb78;
     }
 
     .disease-header {
@@ -871,12 +942,12 @@
             </div>
             <div class="grid-legend">
                 <div class="legend-item">
-                    <span class="legend-dot green"></span>
-                    <span>GREEN</span>
+                    <span class="legend-dot cyan"></span>
+                    <span>左手 (CYAN)</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-dot cyan"></span>
-                    <span>CYAN</span>
+                    <span class="legend-dot green"></span>
+                    <span>右手 (GREEN)</span>
                 </div>
             </div>
             <div class="grid-legend severity-legend">
@@ -900,39 +971,16 @@
         </div>
     </div>
 
-    <!-- Common Symptoms Overview -->
-    {% if matched_diseases %}
-    <div class="card">
-        <div class="section-title">
-            <i class="bi bi-lightning-charge"></i> 常見症狀總覽
+    <!-- Left Hand Analysis -->
+    <div class="card hand-section left-hand">
+        <div class="hand-header left-hand">
+            <i class="bi bi-hand-index-thumb hand-icon"></i>
+            <span>左手分析</span>
+            <span class="hand-dot-count">{{ left_hand.dot_count }} 個偵測點</span>
         </div>
-        <div class="symptoms-overview">
-            <div class="symptoms-overview-title">
-                <i class="bi bi-exclamation-triangle"></i>
-                根據分析結果，可能出現以下症狀
-            </div>
-            <div class="symptoms-tags">
-                {% for disease in matched_diseases %}
-                    {% for symptom in disease.symptoms %}
-                    <span class="symptom-tag">
-                        <i class="bi bi-circle-fill"></i>
-                        {{ symptom }}
-                    </span>
-                    {% endfor %}
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Matched Diseases Detail -->
-    <div class="card">
-        <div class="section-title">
-            <i class="bi bi-clipboard2-pulse"></i> 詳細症狀分析
-        </div>
-        {% if matched_diseases %}
-            {% for disease in matched_diseases %}
-            <div class="card disease-card">
+        {% if left_hand.diseases %}
+            {% for disease in left_hand.diseases %}
+            <div class="card disease-card left-hand-disease">
                 <div class="disease-header">
                     <div>
                         <span class="disease-name">{{ disease.name_zh }}</span>
@@ -953,10 +1001,48 @@
             </div>
             {% endfor %}
         {% else %}
-            <div class="no-match-message">
-                <i class="bi bi-check-circle-fill d-block"></i>
-                <p>未發現明顯異常模式</p>
-                <small>訓練表現良好，請繼續保持！</small>
+            <div class="no-dots-message">
+                <i class="bi bi-check-circle-fill"></i>
+                <p>{% if left_hand.dot_count == 0 %}無左手偵測數據{% else %}未發現明顯異常模式{% endif %}</p>
+                <small>{% if left_hand.dot_count == 0 %}此次訓練未記錄左手數據{% else %}左手訓練表現良好{% endif %}</small>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Hand Analysis -->
+    <div class="card hand-section right-hand">
+        <div class="hand-header right-hand">
+            <i class="bi bi-hand-index-thumb-fill hand-icon"></i>
+            <span>右手分析</span>
+            <span class="hand-dot-count">{{ right_hand.dot_count }} 個偵測點</span>
+        </div>
+        {% if right_hand.diseases %}
+            {% for disease in right_hand.diseases %}
+            <div class="card disease-card right-hand-disease">
+                <div class="disease-header">
+                    <div>
+                        <span class="disease-name">{{ disease.name_zh }}</span>
+                        <span class="disease-name-en">{{ disease.name_en }}</span>
+                    </div>
+                    <span class="match-badge {% if disease.match_percent >= 70 %}match-high{% elif disease.match_percent >= 50 %}match-medium{% else %}match-low{% endif %}">匹配度 {{ disease.match_percent }}%</span>
+                </div>
+                <ul class="symptom-list">
+                    {% for symptom in disease.symptoms %}
+                    <li>{{ symptom }}</li>
+                    {% endfor %}
+                </ul>
+                {% if disease.report %}
+                <div class="disease-report">
+                    {{ disease.report|linebreaks }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-dots-message">
+                <i class="bi bi-check-circle-fill"></i>
+                <p>{% if right_hand.dot_count == 0 %}無右手偵測數據{% else %}未發現明顯異常模式{% endif %}</p>
+                <small>{% if right_hand.dot_count == 0 %}此次訓練未記錄右手數據{% else %}右手訓練表現良好{% endif %}</small>
             </div>
         {% endif %}
     </div>

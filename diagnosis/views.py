@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
-from .disease_mapping import find_matching_diseases, get_all_diseases
+from .disease_mapping import find_matching_diseases_by_hand, get_all_diseases
 from .image_processing import parse_grid, calibrate_from_samples, process_image
 
 logger = logging.getLogger(__name__)
@@ -131,18 +131,14 @@ def result_view(request, examination_id):
     # Show error only if local grid parser failed (primary source)
     has_error = not parsed_grid.get('success', False)
 
-    # Find matching diseases using parsed grid data (more accurate than AI)
-    matched_diseases = []
+    # Find matching diseases by hand using parsed grid data
+    hand_analysis = {'left_hand': {'diseases': []}, 'right_hand': {'diseases': []}}
     if parsed_grid.get('success'):
-        # Use parsed grid for disease matching
         grid_data = {
             'grid_color': parsed_grid.get('grid_color', []),
             'grid_size': parsed_grid.get('grid_size', [])
         }
-        matched_diseases = find_matching_diseases(grid_data)
-    elif not has_error:
-        # Fallback to AI result
-        matched_diseases = find_matching_diseases(raw_data)
+        hand_analysis = find_matching_diseases_by_hand(grid_data)
 
     context = {
         'examination_id': examination_id,
@@ -150,7 +146,8 @@ def result_view(request, examination_id):
         'raw_data': raw_data,
         'parsed_grid': parsed_grid,
         'has_error': has_error,
-        'matched_diseases': matched_diseases,
+        'left_hand': hand_analysis['left_hand'],
+        'right_hand': hand_analysis['right_hand'],
     }
 
     return render(request, 'diagnosis/result.html', context)
