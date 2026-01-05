@@ -86,8 +86,8 @@ def _calculate_match_score(
     if pattern_cells == 0:
         return 0, 0
 
-    # Max score = 4 points per pattern cell
-    max_score = pattern_cells * 4
+    default_cell_score = 1
+    max_score = pattern_cells * default_cell_score
 
     score = 0
     for i in range(81):
