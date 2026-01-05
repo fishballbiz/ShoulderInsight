@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
+from .disease_mapping import find_matching_diseases
 
 logger = logging.getLogger(__name__)
 
@@ -125,11 +126,17 @@ def result_view(request, examination_id):
     raw_data = request.session.get('ai_result', {})
     has_error = 'error' in raw_data
 
+    # Find matching diseases
+    matched_diseases = []
+    if not has_error:
+        matched_diseases = find_matching_diseases(raw_data)
+
     context = {
         'examination_id': examination_id,
         'operator_name': operator_name,
         'raw_data': raw_data,
         'has_error': has_error,
+        'matched_diseases': matched_diseases,
     }
 
     return render(request, 'diagnosis/result.html', context)

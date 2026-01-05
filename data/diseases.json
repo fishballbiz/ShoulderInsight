@@ -10,7 +10,7 @@
       "痠脹、擴散性疼痛"
     ],
     "grid_letter": [null, null, null, "C", "C", "C", "C", "C", "C", null, null, null, "C", "C", "C", "C", "C", "C", null, null, null, "C", "C", "C", "C", "C", "C", null, null, null, null, null, null, null, "C", "C", null, null, null, null, null, null, "W", "W", "W", null, null, null, null, null, null, "W", "W", null, null, null, null, null, null, "W", "W", "W", null, null, null, null, null, null, "W", "W", "W", null, null, null, null, null, null, null, null, null, null],
-    "grid_color": [null, null, null, "BLACK", "BLACK", "BLACK", "RED", "RED", "RED", null, null, null, "BLACK", "BLACK", "BLACK", "RED", "RED", "RED", null, null, null, "BLACK", "BLACK", "BLACK", "RED", "RED", "RED", null, null, null, null, null, null, null, "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "YELLOW", null, null, null, null, null, null, "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, null, null, null, null]
+    "grid_color": [null, null, null, "null", "null", "null", "RED", "RED", "RED", null, null, null, "null", "null", "null", "RED", "RED", "RED", null, null, null, "null", "null", "null", "RED", "RED", "RED", null, null, null, null, null, null, null, "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "YELLOW", null, null, null, null, null, null, "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, "BLUE", "BLUE", "BLUE", null, null, null, null, null, null, null, null, null, null]
   },
   {
     "id": 2,
@@ -36,7 +36,7 @@
       "局部觸壓極度敏感"
     ],
     "grid_letter": [null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, null, "I", "I", "I", null, null, null, null, null, "I", "I", "I", "I", null, null, null, null, null, "I", "I", "I", "I", null, null, null, null, null, null, null, null, null],
-    "grid_color": [null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "RED", "RED", null, null, null, null, null, "BLUE", "BLUE", "YELLOW", "YELLOW", null, null, null, null, null, "BLUE", "BLUE", "YELLOW", "YELLOW", null, null, null, null, null, null, null, null, null]
+    "grid_color": [null, null, null, null, null, null, "null", "null", "null", null, null, null, null, null, null, "null", "null", "null", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "RED", "RED", null, null, null, null, null, null, "RED", "RED", "RED", null, null, null, null, null, null, "YELLOW", "RED", "RED", null, null, null, null, null, "BLUE", "BLUE", "YELLOW", "YELLOW", null, null, null, null, null, "BLUE", "BLUE", "YELLOW", "YELLOW", null, null, null, null, null, null, null, null, null]
   },
   {
     "id": 4,
@@ -127,7 +127,7 @@
       "多見於冰凍肩中後期"
     ],
     "grid_letter": [null, null, null, null, null, null, "S", "S", "S", null, null, null, null, null, null, "S", "S", "S", null, null, null, null, null, null, "S", "S", "S", null, null, null, null, null, null, "S", "S", "S", null, null, null, null, null, null, null, "S", "S", null, null, "C", "C", null, null, null, "S", "S", null, null, "C", "C", "C", "C", "C", "C", null, null, null, "C", "C", "C", "C", null, "C", null, null, null, null, "C", "C", null, null, null, null],
-    "grid_color": [null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, "BLACK", "BLACK", "BLACK", null, null, null, null, null, null, null, "BLUE", "BLUE", null, null, "YELLOW", "YELLOW", null, null, null, "BLUE", "BLUE", null, null, "YELLOW", "YELLOW", "BLUE", "BLUE", "BLUE", "BLUE", null, null, null, "YELLOW", "YELLOW", "BLUE", "BLUE", null, "BLUE", null, null, null, null, "YELLOW", "YELLOW", null, null, null, null]
+    "grid_color": [null, null, null, null, null, null, "null", "null", "null", null, null, null, null, null, null, "null", "null", "null", null, null, null, null, null, null, "null", "null", "null", null, null, null, null, null, null, "null", "null", "null", null, null, null, null, null, null, null, "BLUE", "BLUE", null, null, "YELLOW", "YELLOW", null, null, null, "BLUE", "BLUE", null, null, "YELLOW", "YELLOW", "BLUE", "BLUE", "BLUE", "BLUE", null, null, null, "YELLOW", "YELLOW", "BLUE", "BLUE", null, "BLUE", null, null, null, null, "YELLOW", "YELLOW", null, null, null, null]
   },
   {
     "id": 11,

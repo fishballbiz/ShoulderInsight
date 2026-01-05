@@ -205,6 +205,81 @@
         background: #718096;
     }
 
+    .disease-card {
+        border-left: 4px solid var(--primary-color);
+        margin-bottom: 16px;
+    }
+
+    .disease-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .disease-name {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .disease-name-en {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+
+    .match-badge {
+        background: linear-gradient(135deg, var(--accent-color), #ed8936);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .symptom-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .symptom-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid #edf2f7;
+        color: var(--text-dark);
+        font-size: 0.95rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .symptom-list li:last-child {
+        border-bottom: none;
+    }
+
+    .symptom-list li::before {
+        content: "•";
+        color: var(--accent-color);
+        font-weight: bold;
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+
+    .no-match-message {
+        text-align: center;
+        color: var(--text-muted);
+        padding: 30px;
+    }
+
+    .no-match-message i {
+        font-size: 2.5rem;
+        color: #48bb78;
+        margin-bottom: 12px;
+    }
+
     .debug-section {
         text-align: right;
         margin-top: 40px;
@@ -414,6 +489,37 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Matched Diseases -->
+    <div class="card">
+        <div class="section-title">
+            <i class="bi bi-clipboard2-pulse"></i> 可能症狀分析
+        </div>
+        {% if matched_diseases %}
+            {% for disease in matched_diseases %}
+            <div class="card disease-card">
+                <div class="disease-header">
+                    <div>
+                        <span class="disease-name">{{ disease.name_zh }}</span>
+                        <span class="disease-name-en">{{ disease.name_en }}</span>
+                    </div>
+                    <span class="match-badge">匹配度 {{ disease.match_percent }}%</span>
+                </div>
+                <ul class="symptom-list">
+                    {% for symptom in disease.symptoms %}
+                    <li>{{ symptom }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-match-message">
+                <i class="bi bi-check-circle-fill d-block"></i>
+                <p>未發現明顯異常模式</p>
+                <small>訓練表現良好，請繼續保持！</small>
+            </div>
+        {% endif %}
     </div>
 
     {% endif %}
