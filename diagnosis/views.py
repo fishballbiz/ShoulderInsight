@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
 from .disease_mapping import find_matching_diseases, get_all_diseases
-from .image_processing.cell_analyzer import process_image
+from .image_processing import parse_grid, calibrate_from_samples, process_image
 
 logger = logging.getLogger(__name__)
 
@@ -81,14 +81,14 @@ def analyzing_view(request, examination_id):
 @require_POST
 def analyze_api(request, examination_id):
     """
-    API endpoint to trigger AI analysis.
+    API endpoint to trigger AI analysis and grid parsing.
     Returns JSON with success status and redirect URL.
     """
     session_exam_id = request.session.get('examination_id')
     if session_exam_id != str(examination_id):
         return JsonResponse({'error': '無效的分析請求'}, status=400)
 
-    if request.session.get('ai_result'):
+    if request.session.get('ai_result') and request.session.get('parsed_grid'):
         return JsonResponse({
             'success': True,
             'redirect_url': f'/diagnosis/result/{examination_id}/'
@@ -98,20 +98,22 @@ def analyze_api(request, examination_id):
     if not image_path or not os.path.exists(image_path):
         return JsonResponse({'error': '找不到上傳的圖片'}, status=400)
 
+    # Run local grid parser
+    parsed_result = parse_grid(image_path)
+    request.session['parsed_grid'] = parsed_result
+
+    # Run AI analysis
     try:
         ai_result = analyze_training_image(image_path)
         request.session['ai_result'] = ai_result
-        return JsonResponse({
-            'success': True,
-            'redirect_url': f'/diagnosis/result/{examination_id}/'
-        })
     except Exception as e:
         logger.exception("AI analysis failed")
         request.session['ai_result'] = {'error': str(e)}
-        return JsonResponse({
-            'success': True,
-            'redirect_url': f'/diagnosis/result/{examination_id}/'
-        })
+
+    return JsonResponse({
+        'success': True,
+        'redirect_url': f'/diagnosis/result/{examination_id}/'
+    })
 
 
 def result_view(request, examination_id):
@@ -125,17 +127,28 @@ def result_view(request, examination_id):
 
     operator_name = request.session.get('operator_name', '未知')
     raw_data = request.session.get('ai_result', {})
-    has_error = 'error' in raw_data
+    parsed_grid = request.session.get('parsed_grid', {})
+    # Show error only if local grid parser failed (primary source)
+    has_error = not parsed_grid.get('success', False)
 
-    # Find matching diseases
+    # Find matching diseases using parsed grid data (more accurate than AI)
     matched_diseases = []
-    if not has_error:
+    if parsed_grid.get('success'):
+        # Use parsed grid for disease matching
+        grid_data = {
+            'grid_color': parsed_grid.get('grid_color', []),
+            'grid_size': parsed_grid.get('grid_size', [])
+        }
+        matched_diseases = find_matching_diseases(grid_data)
+    elif not has_error:
+        # Fallback to AI result
         matched_diseases = find_matching_diseases(raw_data)
 
     context = {
         'examination_id': examination_id,
         'operator_name': operator_name,
         'raw_data': raw_data,
+        'parsed_grid': parsed_grid,
         'has_error': has_error,
         'matched_diseases': matched_diseases,
     }
@@ -162,9 +175,16 @@ def grid_poc_view(request):
 
     test_images_dir = Path(settings.BASE_DIR) / 'data' / 'test_inputs'
     results = []
+    calibration = None
 
     if test_images_dir.exists():
-        for image_path in sorted(test_images_dir.glob('*.jpeg'))[:6]:
+        image_paths = sorted(test_images_dir.glob('*.jpeg'))
+
+        # Run calibration on all images
+        calibration = calibrate_from_samples([str(p) for p in image_paths])
+
+        # Process first 6 images for display
+        for image_path in image_paths[:6]:
             result = process_image(str(image_path))
 
             if 'error' in result:
@@ -196,4 +216,7 @@ def grid_poc_view(request):
                     'cell_details': result['analysis']['cell_details']
                 })
 
-    return render(request, 'diagnosis/grid_poc.html', {'results': results})
+    return render(request, 'diagnosis/grid_poc.html', {
+        'results': results,
+        'calibration': calibration
+    })

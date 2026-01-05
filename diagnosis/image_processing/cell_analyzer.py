@@ -44,9 +44,23 @@ CENTER_REGION_RATIO = 0.4
 # Minimum saturation to count as a color (excludes gray/white)
 MIN_SATURATION = 80
 
-# Size thresholds based on pixel coverage ratio
-LARGE_CIRCLE_THRESHOLD = 0.35  # >35% coverage = large circle (size 2)
-SMALL_CIRCLE_THRESHOLD = 0.05  # >5% coverage = small circle (size 1)
+# Size thresholds based on pixel coverage ratio (relative to cell area)
+# These are dynamically calibrated from sample images
+# Smallest detected dot = size 1, largest = size 4
+# Thresholds divide the range into 4 equal parts
+#
+# Default thresholds (will be overridden by calibration):
+SIZE_THRESHOLDS = {
+    't1': 0.20,  # < t1 = size 1
+    't2': 0.35,  # t1-t2 = size 2
+    't3': 0.50,  # t2-t3 = size 3, > t3 = size 4
+}
+
+def set_size_thresholds(t1: float, t2: float, t3: float):
+    """Update size thresholds dynamically."""
+    SIZE_THRESHOLDS['t1'] = t1
+    SIZE_THRESHOLDS['t2'] = t2
+    SIZE_THRESHOLDS['t3'] = t3
 
 
 def _get_color_mask(hsv_image: np.ndarray, color_name: str) -> np.ndarray:
@@ -158,15 +172,17 @@ def analyze_cell(cell_image: np.ndarray) -> dict:
     colored_pixels = cv2.countNonZero(mask)
     pixel_ratio = colored_pixels / cell_area
 
-    # Determine size based on coverage
-    # Large circles (size 2) cover more area and overflow into neighbors
-    # Small circles (size 1) are contained within the cell
-    if pixel_ratio > LARGE_CIRCLE_THRESHOLD:
+    # Determine size based on coverage ratio
+    # Size 1, 2: smaller circles (don't touch border)
+    # Size 3, 4: larger circles (intersect border)
+    if pixel_ratio > SIZE_THRESHOLDS['t3']:
+        size = 4
+    elif pixel_ratio > SIZE_THRESHOLDS['t2']:
+        size = 3
+    elif pixel_ratio > SIZE_THRESHOLDS['t1']:
         size = 2
-    elif pixel_ratio > SMALL_CIRCLE_THRESHOLD:
-        size = 1
     else:
-        size = 1  # Default to small if color detected at center
+        size = 1
 
     confidence = min(1.0, center_ratio)
 
@@ -294,6 +310,71 @@ def visualize_detection(image: np.ndarray, grid_info: dict, analysis: dict) -> n
     return result
 
 
+def _to_native(obj):
+    """Convert numpy types to native Python types for JSON serialization."""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return [_to_native(item) for item in obj.tolist()]
+    if isinstance(obj, dict):
+        return {k: _to_native(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_to_native(item) for item in obj]
+    return obj
+
+
+def parse_grid(image_path: str) -> dict:
+    """
+    Parse a grid image and return grid_color and grid_size arrays.
+
+    Args:
+        image_path: Path to the input image
+
+    Returns:
+        Dictionary with:
+            - grid_color: List of 81 color values (string or None)
+            - grid_size: List of 81 size values (0-4)
+            - success: Boolean indicating if parsing succeeded
+            - error: Error message if failed
+    """
+    from .grid_detector import detect_grid_by_color, extract_cells
+
+    image = cv2.imread(image_path)
+    if image is None:
+        return {
+            'success': False,
+            'error': f'Could not load image: {image_path}',
+            'grid_color': [None] * 81,
+            'grid_size': [0] * 81
+        }
+
+    grid_info = detect_grid_by_color(image)
+    if grid_info is None:
+        return {
+            'success': False,
+            'error': 'Could not detect grid in image',
+            'grid_color': [None] * 81,
+            'grid_size': [0] * 81
+        }
+
+    cells = extract_cells(image, grid_info)
+    analysis = analyze_grid(cells)
+
+    # Convert numpy types to native Python types for JSON serialization
+    return _to_native({
+        'success': True,
+        'grid_color': analysis['grid_color'],
+        'grid_size': analysis['grid_size'],
+        'cell_details': analysis['cell_details'],
+        'grid_info': {
+            'bounds': grid_info['bounds'],
+            'cell_size': grid_info['cell_size']
+        }
+    })
+
+
 def process_image(image_path: str) -> dict:
     """
     Complete processing pipeline for a single image.
@@ -329,4 +410,101 @@ def process_image(image_path: str) -> dict:
         'analysis': analysis,
         'visualization': viz_image,
         'image_shape': image.shape
+    }
+
+
+def calibrate_from_samples(image_paths: list) -> dict:
+    """
+    Analyze sample images to determine optimal size thresholds.
+
+    Extracts coverage ratios from all detected colored cells and
+    calculates threshold values to divide into 4 size categories.
+    Smallest dot = size 1, largest dot = size 4.
+
+    Args:
+        image_paths: List of paths to sample images
+
+    Returns:
+        Dictionary with calibration results and applied thresholds
+    """
+    from .grid_detector import detect_grid_by_color, extract_cells
+
+    all_ratios = []
+
+    for image_path in image_paths:
+        image = cv2.imread(image_path)
+        if image is None:
+            continue
+
+        grid_info = detect_grid_by_color(image)
+        if grid_info is None:
+            continue
+
+        cells = extract_cells(image, grid_info)
+
+        for cell in cells:
+            if cell.size == 0:
+                continue
+
+            # Only process cells with color at center (dots only)
+            center_color, center_ratio = _detect_color_at_center(cell)
+            if center_color is None:
+                continue
+
+            # Calculate full cell coverage
+            hsv = cv2.cvtColor(cell, cv2.COLOR_BGR2HSV)
+            mask = _get_color_mask(hsv, center_color)
+            cell_area = cell.shape[0] * cell.shape[1]
+            colored_pixels = cv2.countNonZero(mask)
+            pixel_ratio = colored_pixels / cell_area
+
+            all_ratios.append({
+                'ratio': pixel_ratio,
+                'color': center_color,
+                'image': image_path
+            })
+
+    if not all_ratios:
+        return {'error': 'No colored cells found in samples'}
+
+    # Sort ratios (only from detected dots)
+    sorted_ratios = sorted([r['ratio'] for r in all_ratios])
+    min_ratio = sorted_ratios[0]
+    max_ratio = sorted_ratios[-1]
+
+    # Calculate thresholds - size 4 only for the largest dots
+    # Size 1: 0-30%, Size 2: 30-55%, Size 3: 55-85%, Size 4: 85-100%
+    range_size = max_ratio - min_ratio
+    t1 = min_ratio + range_size * 0.30
+    t2 = min_ratio + range_size * 0.55
+    t3 = min_ratio + range_size * 0.85
+
+    # Apply thresholds globally
+    set_size_thresholds(t1, t2, t3)
+
+    # Create histogram bins
+    bins = [0, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.70, 0.80, 1.0]
+    histogram = {}
+    for i in range(len(bins) - 1):
+        count = sum(1 for r in sorted_ratios if bins[i] <= r < bins[i+1])
+        histogram[f'{bins[i]:.2f}-{bins[i+1]:.2f}'] = count
+
+    return {
+        'ratios': all_ratios,
+        'sorted_ratios': sorted_ratios,
+        'count': len(all_ratios),
+        'min': round(min_ratio, 3),
+        'max': round(max_ratio, 3),
+        'histogram': histogram,
+        'thresholds': {
+            't1': round(t1, 3),
+            't2': round(t2, 3),
+            't3': round(t3, 3),
+        },
+        'size_ranges': {
+            'size_1': f'< {t1:.3f}',
+            'size_2': f'{t1:.3f} - {t2:.3f}',
+            'size_3': f'{t2:.3f} - {t3:.3f}',
+            'size_4': f'> {t3:.3f}',
+        }
     }

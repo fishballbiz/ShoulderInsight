@@ -155,12 +155,20 @@
         border-color: #3182ce;
     }
 
-    .grid-cell.size-0 {
+    .grid-cell.size-1 {
         transform: scale(0.5);
     }
 
-    .grid-cell.size-1 {
-        transform: scale(0.9);
+    .grid-cell.size-2 {
+        transform: scale(0.7);
+    }
+
+    .grid-cell.size-3 {
+        transform: scale(0.85);
+    }
+
+    .grid-cell.size-4 {
+        transform: scale(1.0);
     }
 
     .grid-legend {
@@ -193,16 +201,32 @@
         background: linear-gradient(135deg, #4299e1, #63b3ed);
     }
 
-    .legend-dot.small {
-        width: 10px;
-        height: 10px;
+    .severity-legend {
+        margin-top: 8px;
+    }
+
+    .legend-dot.severity-1 {
+        width: 8px;
+        height: 8px;
         background: #a0aec0;
     }
 
-    .legend-dot.large {
-        width: 16px;
-        height: 16px;
-        background: #718096;
+    .legend-dot.severity-2 {
+        width: 11px;
+        height: 11px;
+        background: #68d391;
+    }
+
+    .legend-dot.severity-3 {
+        width: 14px;
+        height: 14px;
+        background: #f6ad55;
+    }
+
+    .legend-dot.severity-4 {
+        width: 17px;
+        height: 17px;
+        background: #fc8181;
     }
 
     .disease-card {
@@ -854,13 +878,23 @@
                     <span class="legend-dot cyan"></span>
                     <span>CYAN</span>
                 </div>
+            </div>
+            <div class="grid-legend severity-legend">
                 <div class="legend-item">
-                    <span class="legend-dot large"></span>
-                    <span>主要</span>
+                    <span class="legend-dot severity-1"></span>
+                    <span>1 輕微</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-dot small"></span>
-                    <span>次要</span>
+                    <span class="legend-dot severity-2"></span>
+                    <span>2 中等</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot severity-3"></span>
+                    <span>3 嚴重</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot severity-4"></span>
+                    <span>4 很嚴重</span>
                 </div>
             </div>
         </div>
@@ -962,6 +996,7 @@
 </div>
 
 {{ raw_data|json_script:"rawDataJson" }}
+{{ parsed_grid|json_script:"parsedGridJson" }}
 {% endblock %}
 
 {% block extra_js %}
@@ -976,64 +1011,74 @@ document.addEventListener('DOMContentLoaded', function() {
         debugContent.classList.toggle('show');
     });
 
-    // Parse and display data
+    // Get parsed grid data (preferred) and AI data
+    const parsedGridEl = document.getElementById('parsedGridJson');
+    const rawDataEl = document.getElementById('rawDataJson');
     const rawDataPre = document.getElementById('rawDataPre');
     const gridContainer = document.getElementById('gridDisplay');
 
-    let data = null;
+    let parsedGrid = null;
+    let aiData = null;
 
-    // Try to get data from json_script first
-    const jsonScriptEl = document.getElementById('rawDataJson');
-    if (jsonScriptEl) {
+    // Parse grid data (from local image processing)
+    if (parsedGridEl) {
         try {
-            data = JSON.parse(jsonScriptEl.textContent);
+            parsedGrid = JSON.parse(parsedGridEl.textContent);
         } catch (e) {
-            console.log('Could not parse json_script:', e);
+            console.log('Could not parse parsed grid:', e);
         }
     }
 
-    // Fallback: parse from pre element
-    if (!data) {
+    // Parse AI data
+    if (rawDataEl) {
         try {
-            const rawText = rawDataPre.textContent;
-            const jsonText = rawText
-                .replace(/'/g, '"')
-                .replace(/None/g, 'null')
-                .replace(/True/g, 'true')
-                .replace(/False/g, 'false');
-            data = JSON.parse(jsonText);
+            aiData = JSON.parse(rawDataEl.textContent);
         } catch (e) {
-            console.log('Could not parse raw data:', e);
+            console.log('Could not parse AI data:', e);
         }
     }
 
-    if (data) {
-        // Format JSON display
-        rawDataPre.textContent = JSON.stringify(data, null, 2);
+    // Format debug JSON display
+    if (rawDataPre && aiData) {
+        const debugData = {
+            ai_result: aiData,
+            parsed_grid: parsedGrid
+        };
+        rawDataPre.textContent = JSON.stringify(debugData, null, 2);
+    }
 
-        // Render 9x9 grid
-        if (gridContainer) {
-            gridContainer.innerHTML = '';
-            const gridColor = data.grid_color || [];
-            const gridSize = data.grid_size || [];
+    // Render 9x9 grid - prefer parsed grid data over AI data
+    if (gridContainer) {
+        gridContainer.innerHTML = '';
 
-            for (let i = 0; i < 81; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'grid-cell';
+        // Use parsed grid if successful, otherwise fall back to AI
+        let gridColor = [];
+        let gridSize = [];
 
-                const color = gridColor[i];
-                const size = gridSize[i];
+        if (parsedGrid && parsedGrid.success) {
+            gridColor = parsedGrid.grid_color || [];
+            gridSize = parsedGrid.grid_size || [];
+        } else if (aiData) {
+            gridColor = aiData.grid_color || [];
+            gridSize = aiData.grid_size || [];
+        }
 
-                if (color) {
-                    cell.classList.add(color);
-                }
+        for (let i = 0; i < 81; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
 
-                if (size !== null && size !== undefined) {
-                    cell.classList.add('size-' + size);
-                }
+            const color = gridColor[i];
+            const size = gridSize[i];
 
-                gridContainer.appendChild(cell);
+            if (color) {
+                cell.classList.add(color);
             }
+
+            if (size !== null && size !== undefined && size > 0) {
+                cell.classList.add('size-' + size);
+            }
+
+            gridContainer.appendChild(cell);
         }
     }
 });
