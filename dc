@@ -76,6 +76,34 @@ case "$1" in
             --repository-format=docker \
             --location=$GCP_REGION
 
+        # Create GCS bucket for static files if not exists
+        echo "Setting up static files bucket..."
+        if ! gcloud storage buckets describe gs://$STATIC_BUCKET 2>/dev/null; then
+            gcloud storage buckets create gs://$STATIC_BUCKET \
+                --location=$GCP_REGION \
+                --uniform-bucket-level-access
+        fi
+
+        # Make bucket public for static files
+        gcloud storage buckets add-iam-policy-binding gs://$STATIC_BUCKET \
+            --member=allUsers \
+            --role=roles/storage.objectViewer 2>/dev/null || true
+
+        # Collect and upload static files
+        echo "Collecting static files..."
+        docker-compose -f $COMPOSE_FILE run --rm $SERVICE_NAME python manage.py collectstatic --noinput
+
+        echo "Uploading static files to GCS..."
+        gcloud storage rsync staticfiles/ gs://$STATIC_BUCKET/static/ \
+            --recursive \
+            --delete-unmatched-destination-objects
+
+        # Set cache headers for static files
+        gcloud storage objects update gs://$STATIC_BUCKET/static/** \
+            --cache-control="public, max-age=86400" 2>/dev/null || true
+
+        STATIC_URL="https://storage.googleapis.com/$STATIC_BUCKET/static/"
+
         # Build and push image
         echo "Building and pushing image..."
         docker build --platform linux/amd64 -t $REGISTRY:latest .
@@ -94,7 +122,8 @@ case "$1" in
             --cpu=1 \
             --concurrency=10 \
             --timeout=60 \
-            --cpu-boost
+            --cpu-boost \
+            --set-env-vars="STATIC_URL=$STATIC_URL"
 
         # Clean up old images (keep only latest)
         echo "Cleaning up old images..."
@@ -109,6 +138,7 @@ case "$1" in
         done
 
         echo "Deployment complete!"
+        echo "Static files: $STATIC_URL"
         gcloud run services describe $IMAGE_NAME --region=$GCP_REGION --format="value(status.url)"
         ;;
     *)
