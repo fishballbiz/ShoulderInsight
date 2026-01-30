@@ -57,6 +57,9 @@ def upload_view(request):
         request.session['operator_name'] = operator_name
         request.session['image_paths'] = image_paths
         request.session['ai_result'] = None
+        request.session['accumulated_scores'] = None
+        request.session['parsed_grids'] = None
+        request.session['ai_results'] = None
 
         return redirect('diagnosis:analyzing', examination_id=examination_id)
 

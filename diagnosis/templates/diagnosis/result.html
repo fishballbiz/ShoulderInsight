@@ -1274,7 +1274,6 @@
                         <th>疾病</th>
                         <th>左手分數</th>
                         <th>右手分數</th>
-                        <th>總分</th>
                     </tr>
                 </thead>
                 <tbody id="debugTableBody"></tbody>
@@ -1369,7 +1368,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var disease = leftDiseases[d];
             var leftScore = disease.score || 0;
             var rightScore = rightMap[disease.id] || 0;
-            var total = leftScore + rightScore;
 
             var row = document.createElement('tr');
 
@@ -1384,12 +1382,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var rightCell = document.createElement('td');
             rightCell.textContent = rightScore;
             row.appendChild(rightCell);
-
-            var totalCell = document.createElement('td');
-            var strong = document.createElement('strong');
-            strong.textContent = total;
-            totalCell.appendChild(strong);
-            row.appendChild(totalCell);
 
             tableBody.appendChild(row);
         }
