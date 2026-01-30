@@ -13,9 +13,11 @@ from typing import TypedDict
 
 DISEASES_PATH = Path(__file__).parent.parent / 'data' / 'diseases.json'
 
-# Hand color mapping
 LEFT_HAND_COLOR = 'CYAN'
 RIGHT_HAND_COLOR = 'GREEN'
+
+COLOR_SCORES: dict[str, int] = {'RED': 3, 'YELLOW': 2, 'BLUE': 1}
+MAX_CIRCLE_SIZE = 5
 
 
 class MatchedDisease(TypedDict):
@@ -72,32 +74,33 @@ def _calculate_match_score(
     disease_grid_color: list
 ) -> tuple[int, int]:
     """
-    Calculate match score between result and disease pattern.
+    Calculate weighted match score between result and disease pattern.
 
-    Scoring: Each matching cell adds its size value (1-4).
-    Max score per cell is 4.
+    Scoring: circle_size (1-5) x color_score (RED=3, YELLOW=2, BLUE=1)
+    Disease pattern color determines the weight.
 
     Returns:
         Tuple of (score, max_possible_score)
     """
-    # Count disease pattern cells and calculate max possible score
-    pattern_cells = sum(1 for color in disease_grid_color if color is not None)
+    max_score = 0
+    for color in disease_grid_color:
+        if color is not None:
+            max_score += MAX_CIRCLE_SIZE * COLOR_SCORES.get(color, 1)
 
-    if pattern_cells == 0:
+    if max_score == 0:
         return 0, 0
-
-    default_cell_score = 1
-    max_score = pattern_cells * default_cell_score
 
     score = 0
     for i in range(81):
-        if disease_grid_color[i] is None:
+        disease_color = disease_grid_color[i]
+        if disease_color is None:
             continue
 
         if result_grid_color[i] is not None:
-            # Add size value (1-4) as score
             size = result_grid_size[i] if result_grid_size else 1
-            score += max(1, min(4, size or 1))
+            size = max(1, min(MAX_CIRCLE_SIZE, size or 1))
+            color_weight = COLOR_SCORES.get(disease_color, 1)
+            score += size * color_weight
 
     return score, max_score
 
