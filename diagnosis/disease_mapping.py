@@ -9,6 +9,7 @@ Hand color mapping:
 """
 import json
 from pathlib import Path
+from statistics import median
 from typing import TypedDict
 
 DISEASES_PATH = Path(__file__).parent.parent / 'data' / 'diseases.json'
@@ -249,9 +250,43 @@ def _score_disease_for_hand(
     return score
 
 
+def _build_median_grid(parsed_grids: list[dict]) -> tuple[list, list]:
+    """
+    Build a merged grid using the median size per cell across all images.
+
+    For each cell, collect all observed sizes and take the median.
+    The color is taken from whichever image detected a dot there.
+
+    Returns:
+        Tuple of (grid_color, grid_size) each with 81 elements.
+    """
+    cell_colors: list[str | None] = [None] * 81
+    cell_sizes: list[list[int]] = [[] for _ in range(81)]
+
+    for grid in parsed_grids:
+        if not grid.get('success'):
+            continue
+        grid_color = grid.get('grid_color', [None] * 81)
+        grid_size = grid.get('grid_size', [0] * 81)
+        for i in range(81):
+            if grid_color[i] is not None:
+                cell_colors[i] = grid_color[i]
+                cell_sizes[i].append(grid_size[i] or 1)
+
+    median_sizes = [0] * 81
+    for i in range(81):
+        if cell_sizes[i]:
+            median_sizes[i] = round(median(cell_sizes[i]))
+
+    return cell_colors, median_sizes
+
+
 def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
     """
-    Accumulate weighted scores across multiple parsed grids per disease per hand.
+    Score diseases using the median grid built from multiple parsed grids.
+
+    For each cell, the median size across all images is used.
+    Disease scores are calculated once from this median grid.
 
     Args:
         parsed_grids: List of parse_grid results (each has grid_color, grid_size)
@@ -260,50 +295,33 @@ def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
         Dictionary with left_hand, right_hand analysis and image_count.
     """
     diseases = _load_diseases()
+    median_color, median_size = _build_median_grid(parsed_grids)
+
+    hand_dot_counts = {'left': 0, 'right': 0}
+    for i in range(81):
+        if median_color[i] == LEFT_HAND_COLOR:
+            hand_dot_counts['left'] += 1
+        elif median_color[i] == RIGHT_HAND_COLOR:
+            hand_dot_counts['right'] += 1
 
     hand_scores: dict[str, dict[int, int]] = {
-        'left': {d['id']: 0 for d in diseases},
-        'right': {d['id']: 0 for d in diseases},
+        'left': {},
+        'right': {},
     }
-    hand_dot_counts = {'left': 0, 'right': 0}
-
-    merged_grid_color = [None] * 81
-    merged_grid_size = [0] * 81
-
-    for grid in parsed_grids:
-        if not grid.get('success'):
-            continue
-
-        grid_color = grid.get('grid_color', [None] * 81)
-        grid_size = grid.get('grid_size', [0] * 81)
-
-        for i in range(81):
-            if grid_color[i] is not None:
-                new_size = grid_size[i] or 1
-                if merged_grid_color[i] is None or new_size > merged_grid_size[i]:
-                    merged_grid_color[i] = grid_color[i]
-                    merged_grid_size[i] = new_size
-
-        for disease in diseases:
-            for hand, hand_color in [('left', LEFT_HAND_COLOR),
-                                     ('right', RIGHT_HAND_COLOR)]:
-                score = _score_disease_for_hand(
-                    grid_color, grid_size,
-                    disease['grid_color'], hand_color
-                )
-                hand_scores[hand][disease['id']] += score
-
-        for i in range(81):
-            if grid_color[i] == LEFT_HAND_COLOR:
-                hand_dot_counts['left'] += 1
-            elif grid_color[i] == RIGHT_HAND_COLOR:
-                hand_dot_counts['right'] += 1
+    for disease in diseases:
+        for hand, hand_color in [('left', LEFT_HAND_COLOR),
+                                 ('right', RIGHT_HAND_COLOR)]:
+            score = _score_disease_for_hand(
+                median_color, median_size,
+                disease['grid_color'], hand_color
+            )
+            hand_scores[hand][disease['id']] = score
 
     result = {
         'image_count': len(parsed_grids),
         'merged_grid': {
-            'grid_color': merged_grid_color,
-            'grid_size': merged_grid_size,
+            'grid_color': median_color,
+            'grid_size': median_size,
         },
     }
 
