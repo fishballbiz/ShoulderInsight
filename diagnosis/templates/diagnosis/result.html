@@ -121,25 +121,76 @@
         box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
     }
 
-    /* Training info list */
-    .training-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+    /* Training info - single image card */
+    .training-single .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
     }
 
-    .training-item {
+    .training-single .info-item {
         background: var(--bg-light);
-        padding: 16px 20px;
+        padding: 16px;
         border-radius: 12px;
-        border-left: 4px solid var(--primary-light);
     }
 
-    .training-item-header {
+    .training-single .info-item label {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+    }
+
+    .training-single .info-item span {
+        font-size: 1.15rem;
         font-weight: 600;
-        color: var(--primary-color);
-        margin-bottom: 10px;
-        font-size: 0.95rem;
+        color: var(--text-dark);
+    }
+
+    /* Training info - multi image table */
+    .training-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .training-table th,
+    .training-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+    }
+
+    .training-table th {
+        background: var(--bg-light);
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    .training-table td {
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+
+    .training-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .training-table tr:hover td {
+        background: #f7fafc;
+    }
+
+    @media (max-width: 600px) {
+        .training-table {
+            font-size: 0.8rem;
+        }
+
+        .training-table th,
+        .training-table td {
+            padding: 8px 8px;
+        }
     }
 
     /* Grid visualization */
@@ -880,8 +931,8 @@
             background: #f7fafc !important;
         }
 
-        .training-item {
-            background: #f7fafc !important;
+        .training-table th {
+            background: #edf2f7 !important;
         }
 
         .image-gallery {
@@ -1006,33 +1057,51 @@
         <div class="section-title">
             <i class="bi bi-activity"></i> 訓練資訊
         </div>
-        <div class="training-list">
-            {% for result in ai_results %}
-            <div class="training-item">
-                <div class="training-item-header">
-                    <i class="bi bi-file-image me-1"></i>圖片 {{ forloop.counter }}
+        {% if ai_results|length == 1 %}
+        <div class="training-single">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label><i class="bi bi-tag me-1"></i>訓練名稱</label>
+                    <span>{{ ai_results.0.title|default:"--" }}</span>
                 </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <label><i class="bi bi-tag me-1"></i>訓練名稱</label>
-                        <span>{{ result.title|default:"--" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <label><i class="bi bi-calendar3 me-1"></i>訓練時間</label>
-                        <span>{{ result.date|default:"--" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <label><i class="bi bi-check2-all me-1"></i>完成動作數</label>
-                        <span>{{ result.action_counts|default:"--" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <label><i class="bi bi-stopwatch me-1"></i>訓練時長</label>
-                        <span>{{ result.elapse_time|default:"--" }}</span>
-                    </div>
+                <div class="info-item">
+                    <label><i class="bi bi-calendar3 me-1"></i>訓練時間</label>
+                    <span>{{ ai_results.0.date|default:"--" }}</span>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-check2-all me-1"></i>完成動作數</label>
+                    <span>{{ ai_results.0.action_counts|default:"--" }}</span>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-stopwatch me-1"></i>訓練時長</label>
+                    <span>{{ ai_results.0.elapse_time|default:"--" }}</span>
                 </div>
             </div>
-            {% endfor %}
         </div>
+        {% else %}
+        <table class="training-table" aria-label="訓練資訊">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>訓練名稱</th>
+                    <th>訓練時間</th>
+                    <th>完成動作數</th>
+                    <th>訓練時長</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in ai_results %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ result.title|default:"--" }}</td>
+                    <td>{{ result.date|default:"--" }}</td>
+                    <td>{{ result.action_counts|default:"--" }}</td>
+                    <td>{{ result.elapse_time|default:"--" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
     </div>
 
     <!-- Grid Visualization -->
