@@ -1,6 +1,8 @@
 """Management command to analyze circle sizes from test input images."""
 from pathlib import Path
 
+import cv2
+import numpy as np
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
@@ -15,8 +17,6 @@ class Command(BaseCommand):
     help = 'Analyze circle sizes from test_inputs and output circle_sizes.txt'
 
     def handle(self, *args, **options):
-        import cv2
-        import numpy as np
 
         test_dir = Path(settings.BASE_DIR) / 'data' / 'test_inputs'
         output_path = Path(settings.BASE_DIR) / 'data' / 'circle_sizes.txt'

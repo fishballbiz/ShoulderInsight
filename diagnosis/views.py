@@ -6,14 +6,11 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
-from .disease_mapping import (
-    accumulate_disease_scores,
-    find_matching_diseases_by_hand,
-    get_all_diseases,
-)
+from .disease_mapping import accumulate_disease_scores, get_all_diseases
 from .image_processing import parse_grid, calibrate_from_samples, process_image
 
 logger = logging.getLogger(__name__)
@@ -32,6 +29,12 @@ def upload_view(request):
         if not image_files:
             messages.error(request, '請上傳至少一張圖片')
             return redirect('diagnosis:upload')
+
+        allowed_types = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+        for image_file in image_files:
+            if image_file.content_type not in allowed_types:
+                messages.error(request, '僅支援 JPG、PNG 格式的圖片')
+                return redirect('diagnosis:upload')
 
         examination_id = str(uuid.uuid4())
 
@@ -91,10 +94,10 @@ def analyze_api(request, examination_id):
         return JsonResponse({'error': '無效的分析請求'}, status=400)
 
     if request.session.get('accumulated_scores'):
-        return JsonResponse({
-            'success': True,
-            'redirect_url': f'/diagnosis/result/{examination_id}/'
-        })
+        redirect_url = reverse(
+            'diagnosis:result', kwargs={'examination_id': examination_id}
+        )
+        return JsonResponse({'success': True, 'redirect_url': redirect_url})
 
     image_paths = request.session.get('image_paths', [])
     if not image_paths:
@@ -105,9 +108,19 @@ def analyze_api(request, examination_id):
 
     for image_path in image_paths:
         if not os.path.exists(image_path):
+            logger.warning("Image file missing: %s", image_path)
             continue
 
-        parsed_result = parse_grid(image_path)
+        try:
+            parsed_result = parse_grid(image_path)
+        except Exception as e:
+            logger.exception("Grid parsing failed for %s", image_path)
+            parsed_result = {
+                'success': False,
+                'grid_color': [None] * 81,
+                'grid_size': [0] * 81,
+            }
+
         stripped = {
             'success': parsed_result.get('success', False),
             'grid_color': parsed_result.get('grid_color', [None] * 81),
@@ -122,16 +135,19 @@ def analyze_api(request, examination_id):
             logger.exception("AI analysis failed for %s", image_path)
             ai_results.append({'error': str(e)})
 
+    if not parsed_grids:
+        return JsonResponse({'error': '所有圖片處理失敗'}, status=500)
+
     accumulated = accumulate_disease_scores(parsed_grids)
 
     request.session['parsed_grids'] = parsed_grids
     request.session['ai_results'] = ai_results
     request.session['accumulated_scores'] = accumulated
 
-    return JsonResponse({
-        'success': True,
-        'redirect_url': f'/diagnosis/result/{examination_id}/'
-    })
+    redirect_url = reverse(
+        'diagnosis:result', kwargs={'examination_id': examination_id}
+    )
+    return JsonResponse({'success': True, 'redirect_url': redirect_url})
 
 
 def result_view(request, examination_id):

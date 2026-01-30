@@ -217,14 +217,15 @@ SEVERITY_LABELS = {
 }
 
 MIN_DISPLAY_SCORE = 4
+PRIMARY_RANK_GAP = 3
 
 
-def _classify_severity(score: int) -> str:
-    """Classify score into severity level."""
+def _classify_severity(score: int) -> str | None:
+    """Classify score into severity level. Returns None if below threshold."""
     for level, (low, high) in SEVERITY_THRESHOLDS.items():
         if low <= score <= high:
             return level
-    return 'light'
+    return None
 
 
 def _score_disease_for_hand(
@@ -310,6 +311,7 @@ def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
         all_diseases = []
         for disease in diseases:
             score = hand_scores[hand][disease['id']]
+            severity = _classify_severity(score) if score >= MIN_DISPLAY_SCORE else None
             all_diseases.append({
                 'id': disease['id'],
                 'name_zh': disease['name_zh'],
@@ -317,10 +319,8 @@ def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
                 'symptoms': disease['symptoms'],
                 'report': disease.get('report', ''),
                 'score': score,
-                'severity': _classify_severity(score) if score >= MIN_DISPLAY_SCORE else None,
-                'severity_zh': SEVERITY_LABELS.get(
-                    _classify_severity(score), ''
-                ) if score >= MIN_DISPLAY_SCORE else '',
+                'severity': severity,
+                'severity_zh': SEVERITY_LABELS.get(severity, ''),
             })
 
         all_diseases.sort(key=lambda d: d['score'], reverse=True)
@@ -332,7 +332,7 @@ def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
                 d['rank'] = 'primary'
             elif i == 1:
                 diff = visible[0]['score'] - d['score']
-                d['rank'] = 'primary' if diff <= 3 else 'secondary'
+                d['rank'] = 'primary' if diff <= PRIMARY_RANK_GAP else 'secondary'
             else:
                 d['rank'] = None
 

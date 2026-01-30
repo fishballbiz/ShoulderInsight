@@ -9,6 +9,8 @@ Detection logic:
 import cv2
 import numpy as np
 
+from .grid_detector import detect_grid_by_color, extract_cells
+
 
 # Color ranges in HSV
 COLOR_RANGES = {
@@ -124,9 +126,7 @@ def analyze_cell(cell_image: np.ndarray) -> dict:
 
     Detection logic:
     - Check CENTER of cell for color presence
-    - Measure total coverage to determine size
-    - Size 2 = large circle (overlaps neighbors)
-    - Size 1 = small circle (within cell)
+    - Measure total coverage to determine size (1-5)
 
     Args:
         cell_image: BGR image of a single cell
@@ -134,7 +134,7 @@ def analyze_cell(cell_image: np.ndarray) -> dict:
     Returns:
         Dictionary with:
             - color: Detected color name or None
-            - size: 1 (small), 2 (large), or None
+            - size: 1-5 based on pixel coverage, or None
             - confidence: Detection confidence (0-1)
             - pixel_ratio: Ratio of colored pixels in whole cell
             - center_ratio: Ratio of colored pixels at center
@@ -370,8 +370,6 @@ def parse_grid(image_path: str) -> dict:
     Returns:
         Dictionary with grid_color (81 values), grid_size (1-5), success flag.
     """
-    from .grid_detector import detect_grid_by_color, extract_cells
-
     image = cv2.imread(image_path)
     if image is None:
         return {
@@ -416,13 +414,10 @@ def process_image(image_path: str) -> dict:
     Returns:
         Dictionary with all detection results
     """
-    from .grid_detector import detect_grid_by_color, extract_cells
-
     image = cv2.imread(image_path)
     if image is None:
         return {'error': f'Could not load image: {image_path}'}
 
-    # Try to detect grid
     grid_info = detect_grid_by_color(image)
     if grid_info is None:
         return {'error': 'Could not detect grid in image'}
@@ -454,8 +449,6 @@ def calibrate_from_samples(image_paths: list) -> dict:
     Returns:
         Dictionary with calibration results and applied thresholds
     """
-    from .grid_detector import detect_grid_by_color, extract_cells
-
     all_ratios = []
 
     for image_path in image_paths:
