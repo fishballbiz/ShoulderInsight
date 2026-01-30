@@ -204,21 +204,145 @@ def find_matching_diseases_by_hand(
     }
 
 
-def find_matching_diseases(
-    ai_result: dict,
-    threshold: float = 0.3
-) -> list[MatchedDisease]:
+SEVERITY_THRESHOLDS = {
+    'light': (4, 8),
+    'mild': (9, 18),
+    'serious': (19, float('inf')),
+}
+
+SEVERITY_LABELS = {
+    'light': '輕微',
+    'mild': '中度',
+    'serious': '嚴重',
+}
+
+MIN_DISPLAY_SCORE = 4
+
+
+def _classify_severity(score: int) -> str:
+    """Classify score into severity level."""
+    for level, (low, high) in SEVERITY_THRESHOLDS.items():
+        if low <= score <= high:
+            return level
+    return 'light'
+
+
+def _score_disease_for_hand(
+    grid_color: list,
+    grid_size: list,
+    disease_grid_color: list,
+    hand_color: str
+) -> int:
+    """Calculate weighted score for a single disease on one hand."""
+    score = 0
+    for i in range(81):
+        disease_cell = disease_grid_color[i]
+        if disease_cell is None:
+            continue
+        if grid_color[i] != hand_color:
+            continue
+        size = grid_size[i] if grid_size else 1
+        size = max(1, min(MAX_CIRCLE_SIZE, size or 1))
+        color_weight = COLOR_SCORES.get(disease_cell, 1)
+        score += size * color_weight
+    return score
+
+
+def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
     """
-    Find diseases matching the AI analysis result (combined).
+    Accumulate weighted scores across multiple parsed grids per disease per hand.
 
     Args:
-        ai_result: AI analysis result with grid_color and grid_size
-        threshold: Minimum match percentage (default 30%)
+        parsed_grids: List of parse_grid results (each has grid_color, grid_size)
 
     Returns:
-        List of matching diseases sorted by match percentage
+        Dictionary with left_hand, right_hand analysis and image_count.
     """
-    result_grid_color = ai_result.get('grid_color', [])
-    result_grid_size = ai_result.get('grid_size', [])
+    diseases = _load_diseases()
 
-    return _find_diseases_for_grid(result_grid_color, result_grid_size, threshold)
+    hand_scores: dict[str, dict[int, int]] = {
+        'left': {d['id']: 0 for d in diseases},
+        'right': {d['id']: 0 for d in diseases},
+    }
+    hand_dot_counts = {'left': 0, 'right': 0}
+
+    merged_grid_color = [None] * 81
+    merged_grid_size = [0] * 81
+
+    for grid in parsed_grids:
+        if not grid.get('success'):
+            continue
+
+        grid_color = grid.get('grid_color', [None] * 81)
+        grid_size = grid.get('grid_size', [0] * 81)
+
+        for i in range(81):
+            if grid_color[i] is not None:
+                new_size = grid_size[i] or 1
+                if merged_grid_color[i] is None or new_size > merged_grid_size[i]:
+                    merged_grid_color[i] = grid_color[i]
+                    merged_grid_size[i] = new_size
+
+        for disease in diseases:
+            for hand, hand_color in [('left', LEFT_HAND_COLOR),
+                                     ('right', RIGHT_HAND_COLOR)]:
+                score = _score_disease_for_hand(
+                    grid_color, grid_size,
+                    disease['grid_color'], hand_color
+                )
+                hand_scores[hand][disease['id']] += score
+
+        for i in range(81):
+            if grid_color[i] == LEFT_HAND_COLOR:
+                hand_dot_counts['left'] += 1
+            elif grid_color[i] == RIGHT_HAND_COLOR:
+                hand_dot_counts['right'] += 1
+
+    result = {
+        'image_count': len(parsed_grids),
+        'merged_grid': {
+            'grid_color': merged_grid_color,
+            'grid_size': merged_grid_size,
+        },
+    }
+
+    for hand, hand_zh in [('left', '左手'), ('right', '右手')]:
+        all_diseases = []
+        for disease in diseases:
+            score = hand_scores[hand][disease['id']]
+            all_diseases.append({
+                'id': disease['id'],
+                'name_zh': disease['name_zh'],
+                'name_en': disease['name_en'],
+                'symptoms': disease['symptoms'],
+                'report': disease.get('report', ''),
+                'score': score,
+                'severity': _classify_severity(score) if score >= MIN_DISPLAY_SCORE else None,
+                'severity_zh': SEVERITY_LABELS.get(
+                    _classify_severity(score), ''
+                ) if score >= MIN_DISPLAY_SCORE else '',
+            })
+
+        all_diseases.sort(key=lambda d: d['score'], reverse=True)
+
+        visible = [d for d in all_diseases if d['score'] >= MIN_DISPLAY_SCORE]
+
+        for i, d in enumerate(visible):
+            if i == 0:
+                d['rank'] = 'primary'
+            elif i == 1:
+                diff = visible[0]['score'] - d['score']
+                d['rank'] = 'primary' if diff <= 3 else 'secondary'
+            else:
+                d['rank'] = None
+
+        result[f'{hand}_hand'] = {
+            'hand': hand,
+            'hand_zh': hand_zh,
+            'color': LEFT_HAND_COLOR if hand == 'left' else RIGHT_HAND_COLOR,
+            'dot_count': hand_dot_counts[hand],
+            'diseases': visible[:2],
+            'all_diseases': all_diseases,
+        }
+
+    return result
