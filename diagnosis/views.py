@@ -16,43 +16,39 @@ logger = logging.getLogger(__name__)
 
 
 def upload_view(request):
-    """
-    Upload page for single examination image.
-    Stores image path and operator name in session.
-    """
+    """Upload page for multiple examination images."""
     if request.method == 'POST':
         operator_name = request.POST.get('operator_name')
-        image_file = request.FILES.get('image')
-
-        print(f"POST: operator={operator_name}, FILES={list(request.FILES.keys())}, POST={list(request.POST.keys())}")
+        image_files = request.FILES.getlist('image')
 
         if not operator_name:
             messages.error(request, '請輸入操作者姓名')
             return redirect('diagnosis:upload')
 
-        if not image_file:
-            messages.error(request, '請上傳一張圖片')
+        if not image_files:
+            messages.error(request, '請上傳至少一張圖片')
             return redirect('diagnosis:upload')
 
-        # Generate unique ID for this analysis
         examination_id = str(uuid.uuid4())
 
-        # Save image to media folder
         upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
         os.makedirs(upload_dir, exist_ok=True)
 
-        ext = os.path.splitext(image_file.name)[1]
-        filename = f"{examination_id}{ext}"
-        image_path = os.path.join(upload_dir, filename)
+        image_paths = []
+        for idx, image_file in enumerate(image_files):
+            ext = os.path.splitext(image_file.name)[1]
+            filename = f"{examination_id}_{idx}{ext}"
+            image_path = os.path.join(upload_dir, filename)
 
-        with open(image_path, 'wb') as f:
-            for chunk in image_file.chunks():
-                f.write(chunk)
+            with open(image_path, 'wb') as f:
+                for chunk in image_file.chunks():
+                    f.write(chunk)
 
-        # Store in session
+            image_paths.append(image_path)
+
         request.session['examination_id'] = examination_id
         request.session['operator_name'] = operator_name
-        request.session['image_path'] = image_path
+        request.session['image_paths'] = image_paths
         request.session['ai_result'] = None
 
         return redirect('diagnosis:analyzing', examination_id=examination_id)

@@ -117,33 +117,66 @@
         font-size: 0.9rem;
     }
 
-    .preview-image {
-        max-width: 100%;
-        max-height: 180px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        margin-bottom: 12px;
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+        width: 100%;
     }
 
-    .file-name {
-        color: var(--accent-color);
-        font-weight: 500;
+    .preview-item {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
     }
 
-    .btn-remove {
-        color: #e53e3e;
-        background: rgba(229, 62, 62, 0.1);
-        border: 1px solid rgba(229, 62, 62, 0.2);
-        border-radius: 8px;
-        padding: 6px 12px;
-        font-size: 0.85rem;
-        margin-top: 8px;
+    .preview-item img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .preview-item-name {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        padding: 4px 6px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .preview-item .btn-remove-item {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(229, 62, 62, 0.85);
+        color: white;
+        border: none;
+        font-size: 0.7rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: all 0.2s ease;
     }
 
-    .btn-remove:hover {
-        background: rgba(229, 62, 62, 0.15);
-        color: #c53030;
+    .preview-item .btn-remove-item:hover {
+        background: #c53030;
+        transform: scale(1.1);
+    }
+
+    .file-count {
+        text-align: center;
+        color: var(--accent-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-top: 12px;
     }
 
     .btn-primary-custom {
@@ -254,7 +287,7 @@
         <h1 class="page-title">
             <i class="bi bi-cloud-upload me-2"></i>上傳檢查圖片
         </h1>
-        <p class="page-subtitle">拍攝或選擇病患的復健 App 截圖</p>
+        <p class="page-subtitle">拍攝或選擇病患的復健 App 截圖（可多張）</p>
     </div>
 
     <form id="uploadForm" method="post" enctype="multipart/form-data">
@@ -273,9 +306,9 @@
                 <div class="default-content">
                     <i class="bi bi-camera dropzone-icon"></i>
                     <p class="dropzone-text">點擊拍照或選擇圖片</p>
-                    <p class="dropzone-subtext">支援 JPG, PNG 格式</p>
+                    <p class="dropzone-subtext">支援 JPG, PNG 格式，可選多張</p>
                 </div>
-                <input type="file" id="fileInput" name="image" accept="image/*" style="display: none;">
+                <input type="file" id="fileInput" name="image" accept="image/*" multiple style="display: none;">
                 <input type="file" id="cameraInput" name="camera_image" accept="image/*" capture="environment" style="display: none;">
                 <div class="preview-container" id="previewContainer" style="display: none;"></div>
             </div>
@@ -315,13 +348,102 @@ document.addEventListener('DOMContentLoaded', function() {
     const cameraBtn = document.getElementById('cameraBtn');
     const galleryBtn = document.getElementById('galleryBtn');
 
-    let selectedFile = null;
+    let selectedFiles = [];
 
     function isMobile() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
 
+    function syncFileInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(function(f) { dt.items.add(f); });
+        fileInput.files = dt.files;
+        submitBtn.disabled = selectedFiles.length === 0;
+        if (selectedFiles.length > 0) {
+            dropzone.classList.add('has-file');
+            defaultContent.style.display = 'none';
+            previewContainer.style.display = 'block';
+        } else {
+            dropzone.classList.remove('has-file');
+            defaultContent.style.display = 'flex';
+            previewContainer.style.display = 'none';
+            while (previewContainer.firstChild) {
+                previewContainer.removeChild(previewContainer.firstChild);
+            }
+        }
+    }
+
+    function renderPreviews() {
+        while (previewContainer.firstChild) {
+            previewContainer.removeChild(previewContainer.firstChild);
+        }
+        if (selectedFiles.length === 0) {
+            syncFileInput();
+            return;
+        }
+
+        var grid = document.createElement('div');
+        grid.className = 'preview-grid';
+
+        selectedFiles.forEach(function(file, idx) {
+            var item = document.createElement('div');
+            item.className = 'preview-item';
+
+            var removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn-remove-item';
+            var removeIcon = document.createElement('i');
+            removeIcon.className = 'bi bi-x';
+            removeBtn.appendChild(removeIcon);
+            removeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                selectedFiles.splice(idx, 1);
+                syncFileInput();
+                renderPreviews();
+            });
+
+            var img = document.createElement('img');
+            img.alt = file.name;
+            var reader = new FileReader();
+            reader.onload = function(e) { img.src = e.target.result; };
+            reader.readAsDataURL(file);
+
+            var name = document.createElement('div');
+            name.className = 'preview-item-name';
+            name.textContent = file.name;
+
+            item.appendChild(removeBtn);
+            item.appendChild(img);
+            item.appendChild(name);
+            grid.appendChild(item);
+        });
+
+        previewContainer.appendChild(grid);
+
+        var countEl = document.createElement('div');
+        countEl.className = 'file-count';
+        var checkIcon = document.createElement('i');
+        checkIcon.className = 'bi bi-check-circle me-1';
+        countEl.appendChild(checkIcon);
+        countEl.appendChild(
+            document.createTextNode(selectedFiles.length + ' 張圖片已選擇')
+        );
+        previewContainer.appendChild(countEl);
+
+        syncFileInput();
+    }
+
+    function handleFiles(fileList) {
+        Array.from(fileList).forEach(function(file) {
+            if (file.type.startsWith('image/')) {
+                selectedFiles.push(file);
+            }
+        });
+        renderPreviews();
+    }
+
     dropzone.addEventListener('click', function(e) {
+        if (e.target.closest('.preview-item')) return;
         if (e.target.closest('.mobile-options')) return;
         if (!isMobile()) {
             fileInput.click();
@@ -339,16 +461,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     fileInput.addEventListener('change', function() {
-        if (this.files[0]) handleFile(this.files[0]);
+        if (this.files.length > 0) handleFiles(this.files);
     });
 
     cameraInput.addEventListener('change', function() {
-        if (this.files[0]) {
-            handleFile(this.files[0]);
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(this.files[0]);
-            fileInput.files = dataTransfer.files;
-        }
+        if (this.files.length > 0) handleFiles(this.files);
     });
 
     dropzone.addEventListener('dragover', function(e) {
@@ -364,64 +481,21 @@ document.addEventListener('DOMContentLoaded', function() {
     dropzone.addEventListener('drop', function(e) {
         e.preventDefault();
         this.classList.remove('dragover');
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
-            handleFile(file);
-        }
+        if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
     });
-
-    function handleFile(file) {
-        if (!file) return;
-        selectedFile = file;
-        dropzone.classList.add('has-file');
-        defaultContent.style.display = 'none';
-        previewContainer.style.display = 'block';
-        submitBtn.disabled = false;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewContainer.innerHTML = `
-                <img src="${e.target.result}" class="preview-image" alt="預覽圖">
-                <p class="file-name mb-0">
-                    <i class="bi bi-check-circle me-1"></i>${file.name}
-                </p>
-                <button type="button" class="btn-remove" id="removeBtn">
-                    <i class="bi bi-x-circle me-1"></i>移除
-                </button>
-            `;
-            document.getElementById('removeBtn').addEventListener('click', function(e) {
-                e.stopPropagation();
-                resetUpload();
-            });
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function resetUpload() {
-        selectedFile = null;
-        fileInput.value = '';
-        cameraInput.value = '';
-        dropzone.classList.remove('has-file');
-        defaultContent.style.display = 'flex';
-        previewContainer.style.display = 'none';
-        previewContainer.innerHTML = '';
-        submitBtn.disabled = true;
-    }
 
     document.getElementById('uploadForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const operatorName = document.getElementById('operator_name').value;
+        var operatorName = document.getElementById('operator_name').value;
         if (!operatorName.trim()) {
             alert('請輸入操作者姓名');
             return;
         }
-        if (!fileInput.files[0]) {
-            alert('請選擇或拍攝一張圖片');
+        if (selectedFiles.length === 0) {
+            alert('請選擇或拍攝至少一張圖片');
             return;
         }
+        syncFileInput();
         document.getElementById('loadingOverlay').classList.add('active');
         this.submit();
     });
