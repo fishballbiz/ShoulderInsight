@@ -6,53 +6,56 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
-from .disease_mapping import find_matching_diseases_by_hand, get_all_diseases
+from .disease_mapping import accumulate_disease_scores, get_all_diseases
 from .image_processing import parse_grid, calibrate_from_samples, process_image
 
 logger = logging.getLogger(__name__)
 
 
 def upload_view(request):
-    """
-    Upload page for single examination image.
-    Stores image path and operator name in session.
-    """
+    """Upload page for multiple examination images."""
     if request.method == 'POST':
         operator_name = request.POST.get('operator_name')
-        image_file = request.FILES.get('image')
-
-        print(f"POST: operator={operator_name}, FILES={list(request.FILES.keys())}, POST={list(request.POST.keys())}")
+        image_files = request.FILES.getlist('image')
 
         if not operator_name:
             messages.error(request, '請輸入操作者姓名')
             return redirect('diagnosis:upload')
 
-        if not image_file:
-            messages.error(request, '請上傳一張圖片')
+        if not image_files:
+            messages.error(request, '請上傳至少一張圖片')
             return redirect('diagnosis:upload')
 
-        # Generate unique ID for this analysis
+        allowed_types = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+        for image_file in image_files:
+            if image_file.content_type not in allowed_types:
+                messages.error(request, '僅支援 JPG、PNG 格式的圖片')
+                return redirect('diagnosis:upload')
+
         examination_id = str(uuid.uuid4())
 
-        # Save image to media folder
         upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
         os.makedirs(upload_dir, exist_ok=True)
 
-        ext = os.path.splitext(image_file.name)[1]
-        filename = f"{examination_id}{ext}"
-        image_path = os.path.join(upload_dir, filename)
+        image_paths = []
+        for idx, image_file in enumerate(image_files):
+            ext = os.path.splitext(image_file.name)[1]
+            filename = f"{examination_id}_{idx}{ext}"
+            image_path = os.path.join(upload_dir, filename)
 
-        with open(image_path, 'wb') as f:
-            for chunk in image_file.chunks():
-                f.write(chunk)
+            with open(image_path, 'wb') as f:
+                for chunk in image_file.chunks():
+                    f.write(chunk)
 
-        # Store in session
+            image_paths.append(image_path)
+
         request.session['examination_id'] = examination_id
         request.session['operator_name'] = operator_name
-        request.session['image_path'] = image_path
+        request.session['image_paths'] = image_paths
         request.session['ai_result'] = None
 
         return redirect('diagnosis:analyzing', examination_id=examination_id)
@@ -70,103 +73,124 @@ def analyzing_view(request, examination_id):
         messages.error(request, '無效的分析請求')
         return redirect('diagnosis:upload')
 
-    if request.session.get('ai_result'):
+    if request.session.get('accumulated_scores'):
         return redirect('diagnosis:result', examination_id=examination_id)
 
+    image_count = len(request.session.get('image_paths', []))
     return render(request, 'diagnosis/analyzing.html', {
-        'examination_id': examination_id
+        'examination_id': examination_id,
+        'image_count': image_count,
     })
 
 
 @require_POST
 def analyze_api(request, examination_id):
     """
-    API endpoint to trigger AI analysis and grid parsing.
-    Returns JSON with success status and redirect URL.
+    API endpoint to trigger batch AI analysis and grid parsing.
+    Processes all uploaded images and accumulates scores.
     """
     session_exam_id = request.session.get('examination_id')
     if session_exam_id != str(examination_id):
         return JsonResponse({'error': '無效的分析請求'}, status=400)
 
-    if request.session.get('ai_result') and request.session.get('parsed_grid'):
-        return JsonResponse({
-            'success': True,
-            'redirect_url': f'/diagnosis/result/{examination_id}/'
-        })
+    if request.session.get('accumulated_scores'):
+        redirect_url = reverse(
+            'diagnosis:result', kwargs={'examination_id': examination_id}
+        )
+        return JsonResponse({'success': True, 'redirect_url': redirect_url})
 
-    image_path = request.session.get('image_path')
-    if not image_path or not os.path.exists(image_path):
+    image_paths = request.session.get('image_paths', [])
+    if not image_paths:
         return JsonResponse({'error': '找不到上傳的圖片'}, status=400)
 
-    # Run local grid parser
-    parsed_result = parse_grid(image_path)
-    request.session['parsed_grid'] = parsed_result
+    parsed_grids = []
+    ai_results = []
 
-    # Run AI analysis
-    try:
-        ai_result = analyze_training_image(image_path)
-        request.session['ai_result'] = ai_result
-    except Exception as e:
-        logger.exception("AI analysis failed")
-        request.session['ai_result'] = {'error': str(e)}
+    for image_path in image_paths:
+        if not os.path.exists(image_path):
+            logger.warning("Image file missing: %s", image_path)
+            continue
 
-    return JsonResponse({
-        'success': True,
-        'redirect_url': f'/diagnosis/result/{examination_id}/'
-    })
+        try:
+            parsed_result = parse_grid(image_path)
+        except Exception as e:
+            logger.exception("Grid parsing failed for %s", image_path)
+            parsed_result = {
+                'success': False,
+                'grid_color': [None] * 81,
+                'grid_size': [0] * 81,
+            }
+
+        stripped = {
+            'success': parsed_result.get('success', False),
+            'grid_color': parsed_result.get('grid_color', [None] * 81),
+            'grid_size': parsed_result.get('grid_size', [0] * 81),
+        }
+        parsed_grids.append(stripped)
+
+        try:
+            ai_result = analyze_training_image(image_path)
+            ai_results.append(ai_result)
+        except Exception as e:
+            logger.exception("AI analysis failed for %s", image_path)
+            ai_results.append({'error': str(e)})
+
+    if not parsed_grids:
+        return JsonResponse({'error': '所有圖片處理失敗'}, status=500)
+
+    accumulated = accumulate_disease_scores(parsed_grids)
+
+    request.session['parsed_grids'] = parsed_grids
+    request.session['ai_results'] = ai_results
+    request.session['accumulated_scores'] = accumulated
+
+    redirect_url = reverse(
+        'diagnosis:result', kwargs={'examination_id': examination_id}
+    )
+    return JsonResponse({'success': True, 'redirect_url': redirect_url})
 
 
 def result_view(request, examination_id):
-    """
-    Result page displaying diagnosis results.
-    """
+    """Result page displaying accumulated diagnosis results."""
     session_exam_id = request.session.get('examination_id')
     if session_exam_id != str(examination_id):
         messages.error(request, '無效的分析請求')
         return redirect('diagnosis:upload')
 
     operator_name = request.session.get('operator_name', '未知')
-    raw_data = request.session.get('ai_result', {})
-    parsed_grid = request.session.get('parsed_grid', {})
-    # Show error only if local grid parser failed (primary source)
-    has_error = not parsed_grid.get('success', False)
+    ai_results = request.session.get('ai_results', [])
+    accumulated = request.session.get('accumulated_scores', {})
+    parsed_grids = request.session.get('parsed_grids', [])
 
-    # Find matching diseases by hand using parsed grid data
-    hand_analysis = {'left_hand': {'diseases': []}, 'right_hand': {'diseases': []}}
-    if parsed_grid.get('success'):
-        grid_data = {
-            'grid_color': parsed_grid.get('grid_color', []),
-            'grid_size': parsed_grid.get('grid_size', [])
-        }
-        hand_analysis = find_matching_diseases_by_hand(grid_data)
+    has_error = not any(g.get('success') for g in parsed_grids) if parsed_grids else True
 
-    # Calculate summary flags for each hand
-    for hand_key in ['left_hand', 'right_hand']:
-        diseases = hand_analysis[hand_key].get('diseases', [])
-        hand_analysis[hand_key]['has_high_prob'] = any(
-            d['match_percent'] >= 50 for d in diseases
-        )
-        hand_analysis[hand_key]['has_suspect'] = any(
-            d['match_percent'] < 50 for d in diseases
-        )
+    image_paths = request.session.get('image_paths', [])
+    image_urls = []
+    for path in image_paths:
+        if path and os.path.exists(path):
+            filename = os.path.basename(path)
+            image_urls.append(f'{settings.MEDIA_URL}uploads/{filename}')
 
-    # Get image URL for display
-    image_path = request.session.get('image_path', '')
-    image_url = ''
-    if image_path and os.path.exists(image_path):
-        # Convert absolute path to media URL
-        filename = os.path.basename(image_path)
-        image_url = f'{settings.MEDIA_URL}uploads/{filename}'
+    left_hand = accumulated.get('left_hand', {
+        'diseases': [], 'all_diseases': [], 'dot_count': 0
+    })
+    right_hand = accumulated.get('right_hand', {
+        'diseases': [], 'all_diseases': [], 'dot_count': 0
+    })
+    merged_grid = accumulated.get('merged_grid', {
+        'grid_color': [None] * 81, 'grid_size': [0] * 81
+    })
 
     context = {
         'examination_id': examination_id,
         'operator_name': operator_name,
-        'raw_data': raw_data,
-        'parsed_grid': parsed_grid,
+        'ai_results': ai_results,
         'has_error': has_error,
-        'left_hand': hand_analysis['left_hand'],
-        'right_hand': hand_analysis['right_hand'],
-        'image_url': image_url,
+        'left_hand': left_hand,
+        'right_hand': right_hand,
+        'merged_grid': merged_grid,
+        'image_urls': image_urls,
+        'image_count': accumulated.get('image_count', len(image_paths)),
     }
 
     return render(request, 'diagnosis/result.html', context)

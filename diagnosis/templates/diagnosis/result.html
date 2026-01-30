@@ -121,6 +121,28 @@
         box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
     }
 
+    /* Training info list */
+    .training-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .training-item {
+        background: var(--bg-light);
+        padding: 16px 20px;
+        border-radius: 12px;
+        border-left: 4px solid var(--primary-light);
+    }
+
+    .training-item-header {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+
+    /* Grid visualization */
     .grid-comparison {
         display: flex;
         gap: 24px;
@@ -139,31 +161,6 @@
         flex: 0 0 auto;
     }
 
-    .original-image-wrapper {
-        background: var(--bg-light);
-        padding: 20px;
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        flex: 0 0 auto;
-    }
-
-    .original-image-label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-bottom: 12px;
-        font-weight: 500;
-    }
-
-    .original-image {
-        max-width: 280px;
-        max-height: 400px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        object-fit: contain;
-    }
-
     .grid-container {
         display: grid;
         grid-template-columns: repeat(9, 1fr);
@@ -179,46 +176,56 @@
         border: 2px solid #cbd5e0;
     }
 
-    /* Green (Right hand) - severity gradient light to dark */
+    /* Green (Right hand) - 5 severity levels */
     .grid-cell.GREEN.severity-1 {
-        background: rgba(72, 187, 120, 0.35);
-        border-color: rgba(56, 161, 105, 0.5);
+        background: rgba(72, 187, 120, 0.25);
+        border-color: rgba(56, 161, 105, 0.4);
     }
 
     .grid-cell.GREEN.severity-2 {
-        background: rgba(72, 187, 120, 0.55);
-        border-color: rgba(56, 161, 105, 0.7);
+        background: rgba(72, 187, 120, 0.45);
+        border-color: rgba(56, 161, 105, 0.6);
     }
 
     .grid-cell.GREEN.severity-3 {
-        background: rgba(72, 187, 120, 0.75);
-        border-color: rgba(56, 161, 105, 0.85);
+        background: rgba(72, 187, 120, 0.65);
+        border-color: rgba(56, 161, 105, 0.75);
     }
 
     .grid-cell.GREEN.severity-4 {
-        background: rgb(72, 187, 120);
-        border-color: #38a169;
+        background: rgba(72, 187, 120, 0.85);
+        border-color: rgba(56, 161, 105, 0.9);
     }
 
-    /* Cyan (Left hand) - severity gradient light to dark */
+    .grid-cell.GREEN.severity-5 {
+        background: rgb(38, 145, 80);
+        border-color: #22613a;
+    }
+
+    /* Cyan (Left hand) - 5 severity levels */
     .grid-cell.CYAN.severity-1 {
-        background: rgba(66, 153, 225, 0.35);
-        border-color: rgba(49, 130, 206, 0.5);
+        background: rgba(66, 153, 225, 0.25);
+        border-color: rgba(49, 130, 206, 0.4);
     }
 
     .grid-cell.CYAN.severity-2 {
-        background: rgba(66, 153, 225, 0.55);
-        border-color: rgba(49, 130, 206, 0.7);
+        background: rgba(66, 153, 225, 0.45);
+        border-color: rgba(49, 130, 206, 0.6);
     }
 
     .grid-cell.CYAN.severity-3 {
-        background: rgba(66, 153, 225, 0.75);
-        border-color: rgba(49, 130, 206, 0.85);
+        background: rgba(66, 153, 225, 0.65);
+        border-color: rgba(49, 130, 206, 0.75);
     }
 
     .grid-cell.CYAN.severity-4 {
-        background: rgb(66, 153, 225);
-        border-color: #3182ce;
+        background: rgba(66, 153, 225, 0.85);
+        border-color: rgba(49, 130, 206, 0.9);
+    }
+
+    .grid-cell.CYAN.severity-5 {
+        background: rgb(30, 105, 185);
+        border-color: #1a4d82;
     }
 
     .grid-legend {
@@ -260,14 +267,16 @@
     }
 
     .severity-gradient-bar {
-        width: 200px;
+        width: 240px;
         height: 12px;
         border-radius: 6px;
         background: linear-gradient(90deg,
-            rgba(160, 174, 192, 0.4) 0%,
-            rgba(160, 174, 192, 0.6) 25%,
-            rgba(160, 174, 192, 0.8) 50%,
-            rgba(107, 114, 128, 1) 100%
+            rgba(160, 174, 192, 0.3) 0%,
+            rgba(160, 174, 192, 0.5) 20%,
+            rgba(160, 174, 192, 0.65) 40%,
+            rgba(160, 174, 192, 0.8) 60%,
+            rgba(107, 114, 128, 0.9) 80%,
+            rgba(74, 85, 104, 1) 100%
         );
         border: 1px solid #cbd5e0;
     }
@@ -275,7 +284,7 @@
     .severity-labels {
         display: flex;
         justify-content: space-between;
-        width: 200px;
+        width: 240px;
         font-size: 0.75rem;
         color: var(--text-muted);
     }
@@ -317,10 +326,6 @@
         border-left: 5px solid #48bb78;
     }
 
-    .hand-icon {
-        font-size: 1.5rem;
-    }
-
     .hand-icons-pair {
         display: flex;
         gap: 2px;
@@ -339,130 +344,6 @@
     .hand-emoji-outline {
         opacity: 0.25;
         filter: grayscale(100%);
-    }
-
-    .tag-indicator {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        font-weight: 700;
-        font-size: 0.75rem;
-    }
-
-    .disease-tag.high-prob .tag-indicator {
-        background: #c53030;
-        color: white;
-    }
-
-    .disease-tag.suspect .tag-indicator {
-        background: #c05621;
-        color: white;
-    }
-
-    .disease-tag.no-disease .tag-indicator {
-        background: #276749;
-        color: white;
-    }
-
-    .disease-summary {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 16px;
-        padding: 12px 16px;
-        background: rgba(255, 255, 255, 0.6);
-        border-radius: 10px;
-    }
-
-    .disease-summary-label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-weight: 500;
-        margin-right: 4px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .disease-summary-tag {
-        font-size: 0.85rem;
-        font-weight: 600;
-        padding: 4px 12px;
-        border-radius: 16px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .left-hand .disease-summary-tag {
-        background: linear-gradient(135deg, #4299e1, #63b3ed);
-        color: white;
-    }
-
-    .right-hand .disease-summary-tag {
-        background: linear-gradient(135deg, #48bb78, #68d391);
-        color: white;
-    }
-
-    .disease-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 16px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        margin: 2px 4px;
-        text-decoration: none;
-        transition: all 0.2s ease;
-    }
-
-    .disease-tag i {
-        font-size: 0.75rem;
-    }
-
-    .disease-tag.high-prob {
-        background: rgba(229, 62, 62, 0.1);
-        color: #c53030;
-        border: 1px solid rgba(229, 62, 62, 0.3);
-    }
-
-    .disease-tag.high-prob:hover {
-        background: rgba(229, 62, 62, 0.2);
-        transform: translateY(-1px);
-    }
-
-    .disease-tag.suspect {
-        background: rgba(237, 137, 54, 0.1);
-        color: #c05621;
-        border: 1px solid rgba(237, 137, 54, 0.3);
-    }
-
-    .disease-tag.suspect:hover {
-        background: rgba(237, 137, 54, 0.2);
-        transform: translateY(-1px);
-    }
-
-    .disease-tag.no-disease {
-        background: rgba(72, 187, 120, 0.1);
-        color: #276749;
-        border: 1px solid rgba(72, 187, 120, 0.3);
-    }
-
-    a.disease-tag {
-        cursor: pointer;
-    }
-
-    .disease-card.highlight {
-        animation: highlight-pulse 1s ease-out;
-    }
-
-    @keyframes highlight-pulse {
-        0% { box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.6); }
-        100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); }
     }
 
     .hand-dot-count {
@@ -496,6 +377,7 @@
         color: #48bb78;
     }
 
+    /* Disease card styles */
     .disease-card {
         border-left: 4px solid var(--primary-color);
         margin-bottom: 16px;
@@ -507,6 +389,23 @@
 
     .disease-card.right-hand-disease {
         border-left-color: #48bb78;
+    }
+
+    .disease-card.disease-primary {
+        padding: 24px;
+    }
+
+    .disease-card.disease-secondary {
+        padding: 16px;
+        opacity: 0.9;
+    }
+
+    .disease-card.disease-secondary .disease-name {
+        font-size: 1.05rem;
+    }
+
+    .disease-card.disease-secondary .disease-report {
+        font-size: 0.9rem;
     }
 
     .disease-header {
@@ -530,322 +429,43 @@
         font-weight: 400;
     }
 
-    .match-badge {
-        color: white;
+    .disease-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .severity-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         padding: 4px 12px;
         border-radius: 20px;
         font-size: 0.85rem;
         font-weight: 600;
+        color: white;
     }
 
-    .match-badge.match-high {
+    .severity-badge.severity-light {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+    }
+
+    .severity-badge.severity-mild {
+        background: linear-gradient(135deg, #ed8936, #dd6b20);
+    }
+
+    .severity-badge.severity-serious {
         background: linear-gradient(135deg, #e53e3e, #c53030);
     }
 
-    .match-badge.match-medium {
-        background: linear-gradient(135deg, var(--accent-color), #ed8936);
-    }
-
-    .match-badge.match-low {
-        background: linear-gradient(135deg, #a0aec0, #718096);
-    }
-
-    .btn-print {
-        background: linear-gradient(135deg, #38a169, #2f855a);
-        border: none;
-        color: white;
-        padding: 14px 32px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-print:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(56, 161, 105, 0.4);
-        color: white;
-    }
-
-    /* Print Header - hidden on screen */
-    .print-header {
-        display: none;
-    }
-
-    /* Footer - visible on screen */
-    .print-footer {
-        margin-top: 40px;
-        padding-top: 20px;
-        border-top: 1px solid #e2e8f0;
-    }
-
-    .print-footer-content {
-        display: flex;
-        justify-content: space-between;
+    .score-label {
         font-size: 0.85rem;
         color: var(--text-muted);
-        margin-bottom: 8px;
-    }
-
-    .print-footer-disclaimer {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-
-    /* Report Meta */
-    .report-meta {
+        font-weight: 500;
+        padding: 4px 10px;
         background: var(--bg-light);
-    }
-
-    .report-meta-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-
-    .report-meta-item {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .report-meta-item label {
-        color: var(--text-muted);
-        font-size: 0.85rem;
-    }
-
-    .report-meta-item span {
-        font-weight: 600;
-        color: var(--text-dark);
-    }
-
-    .report-id {
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-        font-size: 0.9rem;
-        word-break: break-all;
-    }
-
-    .screen-only {
-        display: inline;
-    }
-
-    /* Print Styles */
-    @media print {
-        * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-
-        body {
-            background: white !important;
-            font-size: 11pt;
-            line-height: 1.4;
-        }
-
-        .result-container {
-            max-width: 100%;
-            padding: 0;
-        }
-
-        /* Show print header */
-        .print-header {
-            display: block !important;
-            text-align: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #4299e1;
-        }
-
-        .report-title {
-            font-size: 16pt;
-            font-weight: 600;
-            color: #2b6cb0;
-        }
-
-        /* Hide screen-only elements */
-        .screen-only,
-        .action-buttons,
-        .debug-section {
-            display: none !important;
-        }
-
-        .card {
-            box-shadow: none;
-            border: 1px solid #cbd5e0;
-            break-inside: avoid;
-            page-break-inside: avoid;
-            margin-bottom: 15px;
-            padding: 15px;
-        }
-
-        /* Header card for print */
-        .header-card {
-            background: #ebf8ff !important;
-            border: 2px solid #4299e1;
-            color: #2b6cb0 !important;
-        }
-
-        .header-card h1 {
-            color: #2b6cb0 !important;
-            font-size: 14pt;
-        }
-
-        .header-info-item {
-            background: white !important;
-            border: 1px solid #bee3f8;
-            color: #2b6cb0;
-        }
-
-        .operator-badge {
-            font-size: 11pt;
-        }
-
-        .operator-badge strong {
-            font-size: 12pt;
-        }
-
-        /* Report meta for print */
-        .report-meta {
-            background: #f7fafc !important;
-        }
-
-        .report-id {
-            font-size: 9pt;
-        }
-
-        /* Success/failure badge */
-        .success-badge {
-            background: #48bb78 !important;
-            color: white !important;
-        }
-
-        .failed-badge {
-            background: #e53e3e !important;
-        }
-
-        /* Disease cards */
-        .disease-card {
-            break-inside: avoid;
-            page-break-inside: avoid;
-            border-left: 3px solid #4299e1 !important;
-        }
-
-        .disease-report {
-            break-inside: avoid;
-            page-break-inside: avoid;
-            background: #f7fafc !important;
-            font-size: 10pt;
-        }
-
-        /* Grid visualization */
-        .grid-container {
-            max-width: 200px;
-        }
-
-        .grid-cell {
-            border: 1px solid #cbd5e0;
-        }
-
-        .grid-cell.GREEN {
-            background: #48bb78 !important;
-            border-color: #38a169 !important;
-        }
-
-        .grid-cell.CYAN {
-            background: #4299e1 !important;
-            border-color: #3182ce !important;
-        }
-
-        /* Match badges */
-        .match-badge {
-            color: white !important;
-        }
-
-        .match-badge.match-high {
-            background: #e53e3e !important;
-        }
-
-        .match-badge.match-medium {
-            background: #dd6b20 !important;
-        }
-
-        .match-badge.match-low {
-            background: #718096 !important;
-        }
-
-        /* Symptoms overview */
-        .symptoms-overview {
-            background: #ebf8ff !important;
-            border: 1px solid #bee3f8 !important;
-        }
-
-        .symptom-tag {
-            background: white !important;
-            border: 1px solid #cbd5e0 !important;
-            font-size: 9pt;
-        }
-
-        .symptom-list li {
-            background: #edf2f7 !important;
-            font-size: 8pt;
-            padding: 2px 8px;
-        }
-
-        /* Section titles */
-        .section-title {
-            font-size: 12pt;
-            color: #2b6cb0 !important;
-        }
-
-        .section-title i {
-            display: none;
-        }
-
-        /* Info grid */
-        .info-item {
-            background: #f7fafc !important;
-        }
-
-        /* Page settings - extra bottom margin for fixed footer */
-        @page {
-            margin: 1.5cm 1.5cm 3cm 1.5cm;
-            size: A4;
-        }
-
-        @page :first {
-            margin-top: 1cm;
-        }
-
-        /* Footer for print - appears on all pages */
-        .print-footer {
-            display: block !important;
-            position: fixed;
-            bottom: 0.5cm;
-            left: 1.5cm;
-            right: 1.5cm;
-            padding: 8px 0;
-            background: white;
-            font-size: 9pt;
-        }
-
-        .print-footer-content {
-            display: flex;
-            justify-content: space-between;
-            color: #4a5568;
-            margin-bottom: 4px;
-        }
-
-        .print-footer-disclaimer {
-            text-align: left;
-            color: #718096;
-            line-height: 1.4;
-        }
+        border-radius: 16px;
     }
 
     .symptom-list {
@@ -886,59 +506,83 @@
         margin-bottom: 0;
     }
 
-    .symptoms-overview {
-        background: linear-gradient(135deg, #ebf8ff 0%, #e6fffa 100%);
-        border: 1px solid #bee3f8;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 24px;
-    }
-
-    .symptoms-overview-title {
-        color: var(--primary-color);
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 12px;
+    /* Image gallery */
+    .image-gallery {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 8px 0 12px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
     }
 
-    .symptoms-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
+    .image-gallery::-webkit-scrollbar {
+        height: 6px;
     }
 
-    .symptom-tag {
-        background: white;
-        color: var(--text-dark);
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        border: 1px solid #e2e8f0;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+    .image-gallery::-webkit-scrollbar-thumb {
+        background: #cbd5e0;
+        border-radius: 3px;
     }
 
-    .symptom-tag i {
-        color: var(--accent-color);
-        font-size: 0.7rem;
+    .gallery-item {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
     }
 
-    .no-match-message {
+    .gallery-image {
+        max-width: 240px;
+        max-height: 340px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        object-fit: contain;
+    }
+
+    .gallery-label {
         text-align: center;
+        font-size: 0.8rem;
         color: var(--text-muted);
-        padding: 30px;
+        margin-top: 6px;
     }
 
-    .no-match-message i {
-        font-size: 2.5rem;
-        color: #48bb78;
-        margin-bottom: 12px;
+    /* Report Meta */
+    .report-meta {
+        background: var(--bg-light);
     }
 
+    .report-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .report-meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .report-meta-item label {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .report-meta-item span {
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .report-id {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 0.9rem;
+        word-break: break-all;
+    }
+
+    .screen-only {
+        display: inline;
+    }
+
+    /* Debug section */
     .debug-section {
         text-align: right;
         margin-top: 40px;
@@ -973,31 +617,64 @@
         display: block;
     }
 
-    .raw-data-container {
-        background: #1a202c;
-        border-radius: 8px;
-        padding: 16px;
-        overflow-x: auto;
-        max-height: 300px;
-        overflow-y: auto;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    .debug-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin-top: 12px;
     }
 
-    .raw-data-container pre {
-        color: #a0aec0;
-        font-size: 0.75rem;
-        margin: 0;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    .debug-table th,
+    .debug-table td {
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        text-align: left;
     }
 
+    .debug-table th {
+        background: #edf2f7;
+        font-weight: 600;
+        color: var(--text-dark);
+    }
+
+    .debug-table td {
+        color: var(--text-dark);
+    }
+
+    .debug-table tr:hover td {
+        background: #f7fafc;
+    }
+
+    /* Action buttons */
     .action-buttons {
         display: flex;
         gap: 15px;
         justify-content: center;
         margin-top: 30px;
         flex-wrap: wrap;
+    }
+
+    .btn-print {
+        background: linear-gradient(135deg, #38a169, #2f855a);
+        border: none;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(56, 161, 105, 0.3);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(56, 161, 105, 0.4);
+        color: white;
     }
 
     .btn-primary-custom {
@@ -1023,26 +700,236 @@
         color: white;
     }
 
-    .btn-secondary-custom {
-        background: var(--card-bg);
-        border: 2px solid #e2e8f0;
-        color: var(--text-dark);
-        padding: 14px 32px;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
+    /* Print Header - hidden on screen */
+    .print-header {
+        display: none;
     }
 
-    .btn-secondary-custom:hover {
-        border-color: var(--primary-light);
-        background: rgba(66, 153, 225, 0.05);
-        color: var(--primary-color);
+    /* Footer */
+    .print-footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .print-footer-content {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .print-footer-disclaimer {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    /* Print Styles */
+    @media print {
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            background: white !important;
+            font-size: 11pt;
+            line-height: 1.4;
+        }
+
+        .result-container {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4299e1;
+        }
+
+        .report-title {
+            font-size: 16pt;
+            font-weight: 600;
+            color: #2b6cb0;
+        }
+
+        .screen-only,
+        .action-buttons,
+        .debug-section {
+            display: none !important;
+        }
+
+        .card {
+            box-shadow: none;
+            border: 1px solid #cbd5e0;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            margin-bottom: 15px;
+            padding: 15px;
+        }
+
+        .header-card {
+            background: #ebf8ff !important;
+            border: 2px solid #4299e1;
+            color: #2b6cb0 !important;
+        }
+
+        .header-card h1 {
+            color: #2b6cb0 !important;
+            font-size: 14pt;
+        }
+
+        .header-info-item {
+            background: white !important;
+            border: 1px solid #bee3f8;
+            color: #2b6cb0;
+        }
+
+        .operator-badge {
+            font-size: 11pt;
+        }
+
+        .operator-badge strong {
+            font-size: 12pt;
+        }
+
+        .report-meta {
+            background: #f7fafc !important;
+        }
+
+        .report-id {
+            font-size: 9pt;
+        }
+
+        .success-badge {
+            background: #48bb78 !important;
+            color: white !important;
+        }
+
+        .failed-badge {
+            background: #e53e3e !important;
+        }
+
+        .disease-card {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            border-left: 3px solid #4299e1 !important;
+        }
+
+        .disease-report {
+            break-inside: avoid;
+            page-break-inside: avoid;
+            background: #f7fafc !important;
+            font-size: 10pt;
+        }
+
+        .grid-container {
+            max-width: 200px;
+        }
+
+        .grid-cell {
+            border: 1px solid #cbd5e0;
+        }
+
+        .grid-cell.GREEN {
+            background: #48bb78 !important;
+            border-color: #38a169 !important;
+        }
+
+        .grid-cell.CYAN {
+            background: #4299e1 !important;
+            border-color: #3182ce !important;
+        }
+
+        .severity-badge {
+            color: white !important;
+        }
+
+        .severity-badge.severity-light {
+            background: #38a169 !important;
+        }
+
+        .severity-badge.severity-mild {
+            background: #dd6b20 !important;
+        }
+
+        .severity-badge.severity-serious {
+            background: #c53030 !important;
+        }
+
+        .symptom-list li {
+            background: #edf2f7 !important;
+            font-size: 8pt;
+            padding: 2px 8px;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            color: #2b6cb0 !important;
+        }
+
+        .section-title i {
+            display: none;
+        }
+
+        .info-item {
+            background: #f7fafc !important;
+        }
+
+        .training-item {
+            background: #f7fafc !important;
+        }
+
+        .image-gallery {
+            overflow-x: visible;
+            flex-wrap: wrap;
+        }
+
+        .gallery-image {
+            max-width: 160px;
+            max-height: 220px;
+        }
+
+        .debug-table th {
+            background: #edf2f7 !important;
+        }
+
+        @page {
+            margin: 1.5cm 1.5cm 3cm 1.5cm;
+            size: A4;
+        }
+
+        @page :first {
+            margin-top: 1cm;
+        }
+
+        .print-footer {
+            display: block !important;
+            position: fixed;
+            bottom: 0.5cm;
+            left: 1.5cm;
+            right: 1.5cm;
+            padding: 8px 0;
+            background: white;
+            font-size: 9pt;
+        }
+
+        .print-footer-content {
+            display: flex;
+            justify-content: space-between;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+
+        .print-footer-disclaimer {
+            text-align: left;
+            color: #718096;
+            line-height: 1.4;
+        }
     }
 </style>
 {% endblock %}
@@ -1065,6 +952,10 @@
                     <div class="header-info-item operator-badge">
                         <i class="bi bi-person-fill"></i>
                         <span>分析師: <strong>{{ operator_name }}</strong></span>
+                    </div>
+                    <div class="header-info-item">
+                        <i class="bi bi-images"></i>
+                        <span>{{ image_count }} 張圖片</span>
                     </div>
                 </div>
             </div>
@@ -1102,7 +993,7 @@
         <div class="section-title" style="color: #c53030;">
             <i class="bi bi-exclamation-triangle" style="color: #e53e3e;"></i> 分析錯誤
         </div>
-        <p class="error-message">{{ raw_data.error }}</p>
+        <p class="error-message">圖片解析失敗，無法取得有效的網格數據。</p>
         <p style="color: var(--text-muted); margin-top: 12px;">
             <i class="bi bi-info-circle me-1"></i>
             請確認上傳的圖片是否為有效的「訓練成果」畫面截圖。
@@ -1110,41 +1001,48 @@
     </div>
 
     {% else %}
-    <!-- Training Info -->
+    <!-- Per-Image Training Info -->
     <div class="card">
         <div class="section-title">
             <i class="bi bi-activity"></i> 訓練資訊
         </div>
-        <div class="info-grid">
-            <div class="info-item">
-                <label><i class="bi bi-tag me-1"></i>訓練名稱</label>
-                <span>{{ raw_data.title|default:"--" }}</span>
+        <div class="training-list">
+            {% for result in ai_results %}
+            <div class="training-item">
+                <div class="training-item-header">
+                    <i class="bi bi-file-image me-1"></i>圖片 {{ forloop.counter }}
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label><i class="bi bi-tag me-1"></i>訓練名稱</label>
+                        <span>{{ result.title|default:"--" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="bi bi-calendar3 me-1"></i>訓練時間</label>
+                        <span>{{ result.date|default:"--" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="bi bi-check2-all me-1"></i>完成動作數</label>
+                        <span>{{ result.action_counts|default:"--" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <label><i class="bi bi-stopwatch me-1"></i>訓練時長</label>
+                        <span>{{ result.elapse_time|default:"--" }}</span>
+                    </div>
+                </div>
             </div>
-            <div class="info-item">
-                <label><i class="bi bi-calendar3 me-1"></i>訓練時間</label>
-                <span>{{ raw_data.date|default:"--" }}</span>
-            </div>
-            <div class="info-item">
-                <label><i class="bi bi-check2-all me-1"></i>完成動作數</label>
-                <span>{{ raw_data.action_counts|default:"--" }}</span>
-            </div>
-            <div class="info-item">
-                <label><i class="bi bi-stopwatch me-1"></i>訓練時長</label>
-                <span>{{ raw_data.elapse_time|default:"--" }}</span>
-            </div>
+            {% endfor %}
         </div>
     </div>
 
     <!-- Grid Visualization -->
     <div class="card">
         <div class="section-title">
-            <i class="bi bi-grid-3x3"></i> 9×9 網格分析
+            <i class="bi bi-grid-3x3"></i> 9x9 網格分析
         </div>
         <div class="grid-comparison">
             <div class="grid-wrapper">
-                <div class="grid-container" id="gridDisplay">
-                    <!-- Grid cells rendered by JavaScript -->
-                </div>
+                <div class="grid-container" id="gridDisplay"></div>
                 <div class="grid-legend">
                     <div class="legend-item">
                         <span class="legend-dot cyan"></span>
@@ -1158,19 +1056,33 @@
                 <div class="severity-legend">
                     <div class="severity-gradient-bar"></div>
                     <div class="severity-labels">
-                        <span>輕微</span>
-                        <span>嚴重</span>
+                        <span>1 (輕)</span>
+                        <span>2</span>
+                        <span>3</span>
+                        <span>4</span>
+                        <span>5 (重)</span>
                     </div>
                 </div>
             </div>
-            {% if image_url %}
-            <div class="original-image-wrapper">
-                <div class="original-image-label">原始圖片</div>
-                <img src="{{ image_url }}" alt="原始上傳圖片" class="original-image">
-            </div>
-            {% endif %}
         </div>
     </div>
+
+    <!-- Image Gallery -->
+    {% if image_urls %}
+    <div class="card">
+        <div class="section-title">
+            <i class="bi bi-images"></i> 上傳圖片
+        </div>
+        <div class="image-gallery">
+            {% for url in image_urls %}
+            <div class="gallery-item">
+                <img src="{{ url }}" alt="上傳圖片 {{ forloop.counter }}" class="gallery-image">
+                <div class="gallery-label">圖片 {{ forloop.counter }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Left Hand Analysis -->
     <div class="card hand-section left-hand">
@@ -1182,29 +1094,22 @@
             <span>左手分析</span>
             <span class="hand-dot-count">{{ left_hand.dot_count }} 個偵測點</span>
         </div>
-        <!-- Disease Summary -->
-        <div class="disease-summary">
-            <span class="disease-summary-label"><i class="bi bi-clipboard2-pulse"></i>分析結果:</span>
-            {% if left_hand.diseases %}
-                {% for disease in left_hand.diseases %}
-                <a href="#" class="disease-tag {% if disease.match_percent >= 50 %}high-prob{% else %}suspect{% endif %}" data-scroll="left-{{ forloop.counter0 }}" data-index="{{ forloop.counter0 }}">
-                    <span class="tag-indicator">{% if disease.match_percent >= 50 %}!{% else %}?{% endif %}</span>
-                    <span>{{ disease.name_zh }}</span>
-                </a>
-                {% endfor %}
-            {% else %}
-                <span class="disease-tag no-disease"><span class="tag-indicator">✓</span><span>無異常</span></span>
-            {% endif %}
-        </div>
         {% if left_hand.diseases %}
             {% for disease in left_hand.diseases %}
-            <div class="card disease-card left-hand-disease" data-hand="left" data-match="{{ disease.match_percent }}">
+            <div class="card disease-card left-hand-disease {% if disease.rank == 'primary' %}disease-primary{% else %}disease-secondary{% endif %}">
                 <div class="disease-header">
                     <div>
                         <span class="disease-name">{{ disease.name_zh }}</span>
                         <span class="disease-name-en">{{ disease.name_en }}</span>
                     </div>
-                    <span class="match-badge {% if disease.match_percent >= 70 %}match-high{% elif disease.match_percent >= 50 %}match-medium{% else %}match-low{% endif %}">匹配度 {{ disease.match_percent }}%</span>
+                    <div class="disease-meta">
+                        {% if disease.severity %}
+                        <span class="severity-badge severity-{{ disease.severity }}">
+                            {{ disease.severity_zh }}
+                        </span>
+                        {% endif %}
+                        <span class="score-label">分數: {{ disease.score }}</span>
+                    </div>
                 </div>
                 <ul class="symptom-list">
                     {% for symptom in disease.symptoms %}
@@ -1237,29 +1142,22 @@
             <span>右手分析</span>
             <span class="hand-dot-count">{{ right_hand.dot_count }} 個偵測點</span>
         </div>
-        <!-- Disease Summary -->
-        <div class="disease-summary">
-            <span class="disease-summary-label"><i class="bi bi-clipboard2-pulse"></i>分析結果:</span>
-            {% if right_hand.diseases %}
-                {% for disease in right_hand.diseases %}
-                <a href="#" class="disease-tag {% if disease.match_percent >= 50 %}high-prob{% else %}suspect{% endif %}" data-scroll="right-{{ forloop.counter0 }}" data-index="{{ forloop.counter0 }}">
-                    <span class="tag-indicator">{% if disease.match_percent >= 50 %}!{% else %}?{% endif %}</span>
-                    <span>{{ disease.name_zh }}</span>
-                </a>
-                {% endfor %}
-            {% else %}
-                <span class="disease-tag no-disease"><span class="tag-indicator">✓</span><span>無異常</span></span>
-            {% endif %}
-        </div>
         {% if right_hand.diseases %}
             {% for disease in right_hand.diseases %}
-            <div class="card disease-card right-hand-disease" data-hand="right" data-match="{{ disease.match_percent }}">
+            <div class="card disease-card right-hand-disease {% if disease.rank == 'primary' %}disease-primary{% else %}disease-secondary{% endif %}">
                 <div class="disease-header">
                     <div>
                         <span class="disease-name">{{ disease.name_zh }}</span>
                         <span class="disease-name-en">{{ disease.name_en }}</span>
                     </div>
-                    <span class="match-badge {% if disease.match_percent >= 70 %}match-high{% elif disease.match_percent >= 50 %}match-medium{% else %}match-low{% endif %}">匹配度 {{ disease.match_percent }}%</span>
+                    <div class="disease-meta">
+                        {% if disease.severity %}
+                        <span class="severity-badge severity-{{ disease.severity }}">
+                            {{ disease.severity_zh }}
+                        </span>
+                        {% endif %}
+                        <span class="score-label">分數: {{ disease.score }}</span>
+                    </div>
                 </div>
                 <ul class="symptom-list">
                     {% for symptom in disease.symptoms %}
@@ -1294,13 +1192,24 @@
         </a>
     </div>
 
-    <!-- Debug Section (Collapsible) -->
+    <!-- Debug Section -->
     <div class="debug-section">
         <span class="debug-toggle" id="debugToggle" title="開發者調試資訊">&lt;/&gt;</span>
         <div class="debug-content" id="debugContent">
-            <div class="raw-data-container">
-                <pre id="rawDataPre">{{ raw_data|safe }}</pre>
-            </div>
+            <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
+                全部疾病分數總表 (11 項)
+            </h4>
+            <table class="debug-table" aria-label="疾病分數明細">
+                <thead>
+                    <tr>
+                        <th>疾病</th>
+                        <th>左手分數</th>
+                        <th>右手分數</th>
+                        <th>總分</th>
+                    </tr>
+                </thead>
+                <tbody id="debugTableBody"></tbody>
+            </table>
         </div>
     </div>
 
@@ -1316,86 +1225,49 @@
     </div>
 </div>
 
-{{ raw_data|json_script:"rawDataJson" }}
-{{ parsed_grid|json_script:"parsedGridJson" }}
+{{ merged_grid|json_script:"mergedGridJson" }}
+{{ left_hand.all_diseases|json_script:"leftAllDiseasesJson" }}
+{{ right_hand.all_diseases|json_script:"rightAllDiseasesJson" }}
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Debug toggle
-    const debugToggle = document.getElementById('debugToggle');
-    const debugContent = document.getElementById('debugContent');
+    var debugToggle = document.getElementById('debugToggle');
+    var debugContent = document.getElementById('debugContent');
 
     debugToggle.addEventListener('click', function() {
         debugToggle.classList.toggle('expanded');
         debugContent.classList.toggle('show');
     });
 
-    // Get parsed grid data (preferred) and AI data
-    const parsedGridEl = document.getElementById('parsedGridJson');
-    const rawDataEl = document.getElementById('rawDataJson');
-    const rawDataPre = document.getElementById('rawDataPre');
-    const gridContainer = document.getElementById('gridDisplay');
-
-    let parsedGrid = null;
-    let aiData = null;
-
-    // Parse grid data (from local image processing)
-    if (parsedGridEl) {
+    var mergedGrid = null;
+    var mergedGridEl = document.getElementById('mergedGridJson');
+    if (mergedGridEl) {
         try {
-            parsedGrid = JSON.parse(parsedGridEl.textContent);
+            mergedGrid = JSON.parse(mergedGridEl.textContent);
         } catch (e) {
-            console.log('Could not parse parsed grid:', e);
+            // Grid data unavailable
         }
     }
 
-    // Parse AI data
-    if (rawDataEl) {
-        try {
-            aiData = JSON.parse(rawDataEl.textContent);
-        } catch (e) {
-            console.log('Could not parse AI data:', e);
-        }
-    }
+    var gridContainer = document.getElementById('gridDisplay');
+    if (gridContainer && mergedGrid) {
+        gridContainer.textContent = '';
+        var gridColor = mergedGrid.grid_color || [];
+        var gridSize = mergedGrid.grid_size || [];
 
-    // Format debug JSON display
-    if (rawDataPre && aiData) {
-        const debugData = {
-            ai_result: aiData,
-            parsed_grid: parsedGrid
-        };
-        rawDataPre.textContent = JSON.stringify(debugData, null, 2);
-    }
-
-    // Render 9x9 grid - prefer parsed grid data over AI data
-    if (gridContainer) {
-        gridContainer.innerHTML = '';
-
-        // Use parsed grid if successful, otherwise fall back to AI
-        let gridColor = [];
-        let gridSize = [];
-
-        if (parsedGrid && parsedGrid.success) {
-            gridColor = parsedGrid.grid_color || [];
-            gridSize = parsedGrid.grid_size || [];
-        } else if (aiData) {
-            gridColor = aiData.grid_color || [];
-            gridSize = aiData.grid_size || [];
-        }
-
-        for (let i = 0; i < 81; i++) {
-            const cell = document.createElement('div');
+        for (var i = 0; i < 81; i++) {
+            var cell = document.createElement('div');
             cell.className = 'grid-cell';
 
-            const color = gridColor[i];
-            const severity = gridSize[i];
+            var color = gridColor[i];
+            var severity = gridSize[i];
 
             if (color) {
                 cell.classList.add(color);
-                // Add severity class for color gradient
                 if (severity !== null && severity !== undefined && severity > 0) {
-                    cell.classList.add('severity-' + Math.min(4, Math.max(1, severity)));
+                    cell.classList.add('severity-' + Math.min(5, Math.max(1, severity)));
                 } else {
                     cell.classList.add('severity-1');
                 }
@@ -1405,24 +1277,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Scroll to disease functionality
-    document.querySelectorAll('a.disease-tag[data-scroll]').forEach(tag => {
-        tag.addEventListener('click', function(e) {
-            e.preventDefault();
-            const scrollType = this.dataset.scroll;
-            const [hand, indexStr] = scrollType.split('-');
-            const index = parseInt(indexStr, 10);
+    var leftDiseases = [];
+    var rightDiseases = [];
+    var leftEl = document.getElementById('leftAllDiseasesJson');
+    var rightEl = document.getElementById('rightAllDiseasesJson');
 
-            // Find the specific disease card by index
-            const cards = document.querySelectorAll(`.disease-card[data-hand="${hand}"]`);
-            if (cards[index]) {
-                const card = cards[index];
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                card.classList.add('highlight');
-                setTimeout(() => card.classList.remove('highlight'), 1000);
-            }
-        });
-    });
+    if (leftEl) {
+        try { leftDiseases = JSON.parse(leftEl.textContent); } catch (e) {}
+    }
+    if (rightEl) {
+        try { rightDiseases = JSON.parse(rightEl.textContent); } catch (e) {}
+    }
+
+    var tableBody = document.getElementById('debugTableBody');
+    if (tableBody && leftDiseases.length > 0) {
+        var rightMap = {};
+        for (var r = 0; r < rightDiseases.length; r++) {
+            rightMap[rightDiseases[r].id] = rightDiseases[r].score || 0;
+        }
+
+        for (var d = 0; d < leftDiseases.length; d++) {
+            var disease = leftDiseases[d];
+            var leftScore = disease.score || 0;
+            var rightScore = rightMap[disease.id] || 0;
+            var total = leftScore + rightScore;
+
+            var row = document.createElement('tr');
+
+            var nameCell = document.createElement('td');
+            nameCell.textContent = disease.name_zh;
+            row.appendChild(nameCell);
+
+            var leftCell = document.createElement('td');
+            leftCell.textContent = leftScore;
+            row.appendChild(leftCell);
+
+            var rightCell = document.createElement('td');
+            rightCell.textContent = rightScore;
+            row.appendChild(rightCell);
+
+            var totalCell = document.createElement('td');
+            var strong = document.createElement('strong');
+            strong.textContent = total;
+            totalCell.appendChild(strong);
+            row.appendChild(totalCell);
+
+            tableBody.appendChild(row);
+        }
+    }
 });
 </script>
 {% endblock %}
