@@ -214,10 +214,19 @@
 
     .grid-container {
         display: grid;
-        grid-template-columns: repeat(9, 1fr);
-        gap: 4px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
         width: 100%;
         max-width: 320px;
+    }
+
+    .grid-block {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3px;
+        background: #cbd5e0;
+        padding: 2px;
+        border-radius: 6px;
     }
 
     .grid-cell {
@@ -882,6 +891,10 @@
             max-width: 200px;
         }
 
+        .grid-block {
+            background: #cbd5e0 !important;
+        }
+
         .grid-cell {
             border: 1px solid #cbd5e0;
         }
@@ -1325,23 +1338,35 @@ document.addEventListener('DOMContentLoaded', function() {
         var gridColor = mergedGrid.grid_color || [];
         var gridSize = mergedGrid.grid_size || [];
 
-        for (var i = 0; i < 81; i++) {
-            var cell = document.createElement('div');
-            cell.className = 'grid-cell';
+        for (var br = 0; br < 3; br++) {
+            for (var bc = 0; bc < 3; bc++) {
+                var block = document.createElement('div');
+                block.className = 'grid-block';
 
-            var color = gridColor[i];
-            var severity = gridSize[i];
+                for (var cr = 0; cr < 3; cr++) {
+                    for (var cc = 0; cc < 3; cc++) {
+                        var i = (br * 3 + cr) * 9 + (bc * 3 + cc);
+                        var cell = document.createElement('div');
+                        cell.className = 'grid-cell';
 
-            if (color) {
-                cell.classList.add(color);
-                if (severity !== null && severity !== undefined && severity > 0) {
-                    cell.classList.add('severity-' + Math.min(5, Math.max(1, severity)));
-                } else {
-                    cell.classList.add('severity-1');
+                        var color = gridColor[i];
+                        var severity = gridSize[i];
+
+                        if (color) {
+                            cell.classList.add(color);
+                            if (severity !== null && severity !== undefined && severity > 0) {
+                                cell.classList.add('severity-' + Math.min(5, Math.max(1, severity)));
+                            } else {
+                                cell.classList.add('severity-1');
+                            }
+                        }
+
+                        block.appendChild(cell);
+                    }
                 }
-            }
 
-            gridContainer.appendChild(cell);
+                gridContainer.appendChild(block);
+            }
         }
     }
 
