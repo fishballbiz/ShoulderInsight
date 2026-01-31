@@ -1065,6 +1065,23 @@
     </div>
 
     {% else %}
+    <!-- Image Gallery -->
+    {% if image_urls %}
+    <div class="card">
+        <div class="section-title">
+            <i class="bi bi-images"></i> 上傳圖片
+        </div>
+        <div class="image-gallery">
+            {% for url in image_urls %}
+            <div class="gallery-item">
+                <img src="{{ url }}" alt="上傳圖片 {{ forloop.counter }}" class="gallery-image">
+                <div class="gallery-label">圖片 {{ forloop.counter }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Per-Image Training Info -->
     <div class="card">
         <div class="section-title">
@@ -1148,23 +1165,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Image Gallery -->
-    {% if image_urls %}
-    <div class="card">
-        <div class="section-title">
-            <i class="bi bi-images"></i> 上傳圖片
-        </div>
-        <div class="image-gallery">
-            {% for url in image_urls %}
-            <div class="gallery-item">
-                <img src="{{ url }}" alt="上傳圖片 {{ forloop.counter }}" class="gallery-image">
-                <div class="gallery-label">圖片 {{ forloop.counter }}</div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
 
     <!-- Left Hand Analysis -->
     <div class="card hand-section left-hand">

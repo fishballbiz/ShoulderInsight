@@ -49,7 +49,7 @@ analyze_api:
 
 **`diagnosis/disease_mapping.py`** — Scoring engine
 - Loads 11 diseases from `data/diseases.json` (each has a 81-cell grid pattern)
-- Hand separation: CYAN=left, GREEN=right (color determines hand, not severity)
+- Hand separation: CYAN=left, GREEN=right (patient's perspective, color determines hand, not severity)
 - Scoring: `circle_size(1-5) × color_weight(RED=3, YELLOW=2, BLUE=1)`
 - Multi-image: builds median grid, scores once from that
 - Severity: <4 hidden, 4-8 light, 9-18 mild, >18 serious
