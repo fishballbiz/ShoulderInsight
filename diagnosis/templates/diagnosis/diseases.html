@@ -280,12 +280,12 @@
                     {% endfor %}
                 </div>
 
-                {% if disease.report %}
+                {% if disease.report.cause %}
                 <div class="section-label">
-                    <i class="bi bi-file-text"></i> 詳細說明
+                    <i class="bi bi-file-text"></i> 成因
                 </div>
                 <div class="disease-report">
-                    {{ disease.report|linebreaks }}
+                    {{ disease.report.cause|linebreaks }}
                 </div>
                 {% endif %}
             </div>
