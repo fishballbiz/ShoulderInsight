@@ -277,6 +277,8 @@ def _build_median_grid(parsed_grids: list[dict]) -> tuple[list, list]:
     for i in range(81):
         if cell_sizes[i]:
             median_sizes[i] = round(median(cell_sizes[i]))
+        if median_sizes[i] == 0:
+            cell_colors[i] = None
 
     return cell_colors, median_sizes
 
