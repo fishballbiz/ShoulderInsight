@@ -45,7 +45,7 @@ analyze_api:
 
 **`diagnosis/image_processing/`** — OpenCV grid detection pipeline
 - `grid_detector.py`: 3-tier grid detection (gray color → Hough lines → contour fallback)
-- `cell_analyzer.py`: HSV color detection at cell center (40% region), 5-level size calibration
+- `cell_analyzer.py`: HSV color detection at cell center (40% region), radius-based size via `minEnclosingCircle` (diameter_ratio = 2*radius/cell_width)
 
 **`diagnosis/disease_mapping.py`** — Scoring engine
 - Loads 11 diseases from `data/diseases.json` (each has a 81-cell grid pattern)

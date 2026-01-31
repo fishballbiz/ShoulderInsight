@@ -3,7 +3,8 @@ Cell analysis module for detecting circle color and size.
 
 Detection logic:
 - Check cell CENTER for color presence (not whole cell)
-- Size 1-5 based on pixel coverage ratio (smallest to largest)
+- Size 1-5 based on diameter_ratio via minEnclosingCircle
+- diameter_ratio = (2 * radius_px) / cell_width
 - None = empty cell (no color at center)
 """
 import cv2
@@ -45,10 +46,10 @@ CENTER_REGION_RATIO = 0.4
 MIN_SATURATION = 80
 
 SIZE_THRESHOLDS = {
-    't1': 0.15,
-    't2': 0.25,
-    't3': 0.38,
-    't4': 0.52,
+    't1': 0.717,
+    't2': 0.886,
+    't3': 1.054,
+    't4': 1.223,
 }
 
 
@@ -120,13 +121,31 @@ def _detect_color_at_center(cell_image: np.ndarray) -> tuple:
     return best_color, best_ratio
 
 
+def _measure_diameter_ratio(cell_image: np.ndarray, mask: np.ndarray) -> float:
+    """
+    Measure circle diameter as a ratio of cell width using minEnclosingCircle.
+
+    Returns 0.0 if no contour found.
+    """
+    contours, _ = cv2.findContours(
+        mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
+    if not contours:
+        return 0.0
+
+    largest = max(contours, key=cv2.contourArea)
+    (_, _), radius_px = cv2.minEnclosingCircle(largest)
+    cell_width = cell_image.shape[1]
+    return (2 * radius_px) / cell_width
+
+
 def analyze_cell(cell_image: np.ndarray) -> dict:
     """
     Analyze a single cell for color and size.
 
     Detection logic:
     - Check CENTER of cell for color presence
-    - Measure total coverage to determine size (1-5)
+    - Measure diameter_ratio via minEnclosingCircle to determine size (1-5)
 
     Args:
         cell_image: BGR image of a single cell
@@ -134,9 +153,9 @@ def analyze_cell(cell_image: np.ndarray) -> dict:
     Returns:
         Dictionary with:
             - color: Detected color name or None
-            - size: 1-5 based on pixel coverage, or None
+            - size: 1-5 based on diameter_ratio, or None
             - confidence: Detection confidence (0-1)
-            - pixel_ratio: Ratio of colored pixels in whole cell
+            - diameter_ratio: Circle diameter / cell width
             - center_ratio: Ratio of colored pixels at center
     """
     if cell_image.size == 0:
@@ -144,11 +163,10 @@ def analyze_cell(cell_image: np.ndarray) -> dict:
             'color': None,
             'size': None,
             'confidence': 0,
-            'pixel_ratio': 0,
+            'diameter_ratio': 0,
             'center_ratio': 0
         }
 
-    # First check if there's color at the center
     center_color, center_ratio = _detect_color_at_center(cell_image)
 
     if center_color is None:
@@ -156,24 +174,21 @@ def analyze_cell(cell_image: np.ndarray) -> dict:
             'color': None,
             'size': None,
             'confidence': 0,
-            'pixel_ratio': 0,
+            'diameter_ratio': 0,
             'center_ratio': 0
         }
 
-    # Color found at center - now measure total coverage to determine size
     hsv = cv2.cvtColor(cell_image, cv2.COLOR_BGR2HSV)
     mask = _get_color_mask(hsv, center_color)
-    cell_area = cell_image.shape[0] * cell_image.shape[1]
-    colored_pixels = cv2.countNonZero(mask)
-    pixel_ratio = colored_pixels / cell_area
+    diameter_ratio = _measure_diameter_ratio(cell_image, mask)
 
-    if pixel_ratio > SIZE_THRESHOLDS['t4']:
+    if diameter_ratio > SIZE_THRESHOLDS['t4']:
         size = 5
-    elif pixel_ratio > SIZE_THRESHOLDS['t3']:
+    elif diameter_ratio > SIZE_THRESHOLDS['t3']:
         size = 4
-    elif pixel_ratio > SIZE_THRESHOLDS['t2']:
+    elif diameter_ratio > SIZE_THRESHOLDS['t2']:
         size = 3
-    elif pixel_ratio > SIZE_THRESHOLDS['t1']:
+    elif diameter_ratio > SIZE_THRESHOLDS['t1']:
         size = 2
     else:
         size = 1
@@ -184,7 +199,7 @@ def analyze_cell(cell_image: np.ndarray) -> dict:
         'color': center_color,
         'size': size,
         'confidence': confidence,
-        'pixel_ratio': pixel_ratio,
+        'diameter_ratio': diameter_ratio,
         'center_ratio': center_ratio
     }
 
@@ -321,9 +336,11 @@ def _to_native(obj):
 
 def _calibrate_and_assign_sizes(cell_details: list) -> list:
     """
-    Calibrate size thresholds from actual pixel ratios and reassign sizes 1-5.
+    Calibrate size thresholds from actual diameter ratios and reassign sizes 1-5.
     """
-    ratios = [d['pixel_ratio'] for d in cell_details if d['color'] is not None]
+    ratios = [
+        d['diameter_ratio'] for d in cell_details if d['color'] is not None
+    ]
 
     if len(ratios) < 2:
         return [d['size'] for d in cell_details]
@@ -345,14 +362,14 @@ def _calibrate_and_assign_sizes(cell_details: list) -> list:
         if detail['color'] is None:
             new_sizes.append(detail['size'])
         else:
-            pr = detail['pixel_ratio']
-            if pr > t4:
+            dr = detail['diameter_ratio']
+            if dr > t4:
                 new_sizes.append(5)
-            elif pr > t3:
+            elif dr > t3:
                 new_sizes.append(4)
-            elif pr > t2:
+            elif dr > t2:
                 new_sizes.append(3)
-            elif pr > t1:
+            elif dr > t1:
                 new_sizes.append(2)
             else:
                 new_sizes.append(1)
@@ -466,18 +483,16 @@ def calibrate_from_samples(image_paths: list) -> dict:
             if cell.size == 0:
                 continue
 
-            center_color, center_ratio = _detect_color_at_center(cell)
+            center_color, _ = _detect_color_at_center(cell)
             if center_color is None:
                 continue
 
             hsv = cv2.cvtColor(cell, cv2.COLOR_BGR2HSV)
             mask = _get_color_mask(hsv, center_color)
-            cell_area = cell.shape[0] * cell.shape[1]
-            colored_pixels = cv2.countNonZero(mask)
-            pixel_ratio = colored_pixels / cell_area
+            diameter_ratio = _measure_diameter_ratio(cell, mask)
 
             all_ratios.append({
-                'ratio': pixel_ratio,
+                'ratio': diameter_ratio,
                 'color': center_color,
                 'image': image_path
             })
@@ -497,8 +512,8 @@ def calibrate_from_samples(image_paths: list) -> dict:
 
     set_size_thresholds(t1, t2, t3, t4)
 
-    bins = [0, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40,
-            0.45, 0.50, 0.55, 0.60, 0.70, 0.80, 1.0]
+    bins = [0, 0.20, 0.40, 0.60, 0.80, 1.00,
+            1.20, 1.40, 1.60, 1.80, 2.00, 2.50]
     histogram = {}
     for i in range(len(bins) - 1):
         count = sum(1 for r in sorted_ratios if bins[i] <= r < bins[i+1])
