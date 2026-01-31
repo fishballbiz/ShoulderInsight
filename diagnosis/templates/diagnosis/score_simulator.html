@@ -1,0 +1,634 @@
+{% extends 'diagnosis/base.html' %}
+
+{% block title %}分數模擬器 - 智慧肩部復健 AI 診斷平台{% endblock %}
+
+{% block extra_css %}
+<style>
+    .simulator-container {
+        padding: 30px 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        color: var(--primary-color);
+        font-weight: 700;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card {
+        background: var(--card-bg);
+        border: none;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i { color: var(--primary-light); }
+
+    .section-subtitle {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 400;
+    }
+
+    /* Threshold Card */
+    .threshold-inputs {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .threshold-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .threshold-group input[type="number"] {
+        width: 60px;
+        padding: 6px 8px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-align: center;
+        color: var(--text-dark);
+        transition: border-color 0.2s;
+    }
+
+    .threshold-group input[type="number"]:focus {
+        outline: none;
+        border-color: var(--primary-light);
+    }
+
+    .threshold-sep {
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    .threshold-derived {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        padding: 6px 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: var(--bg-light);
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    /* Severity badges */
+    .severity-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: white;
+    }
+
+    .severity-badge.severity-light {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+    }
+
+    .severity-badge.severity-mild {
+        background: linear-gradient(135deg, #ed8936, #dd6b20);
+    }
+
+    .severity-badge.severity-serious {
+        background: linear-gradient(135deg, #e53e3e, #c53030);
+    }
+
+    /* Two-column layout */
+    .simulator-layout {
+        display: grid;
+        grid-template-columns: 480px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    @media (max-width: 768px) {
+        .simulator-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Grid */
+    .sim-grid-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 16px;
+    }
+
+    .sim-grid-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        width: 100%;
+        max-width: 420px;
+    }
+
+    .sim-block {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 3px;
+        background: #cbd5e0;
+        padding: 2px;
+        border-radius: 6px;
+    }
+
+    /* Cell base */
+    .sim-cell, .legend-cell {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: #e2e8f0;
+        border: 2px solid #cbd5e0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: transparent;
+    }
+
+    .sim-cell {
+        cursor: pointer;
+        transition: all 0.15s ease;
+        user-select: none;
+        font-size: 0.9rem;
+    }
+
+    .sim-cell:hover {
+        border-color: #a0aec0;
+    }
+
+    .legend-cell {
+        width: 28px;
+        height: 28px;
+        font-size: 0.7rem;
+        color: #a0aec0;
+    }
+
+    /* Size levels (shared between sim-cell and legend-cell) */
+    .size-1 {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.4);
+        color: #4338ca;
+    }
+    .size-2 {
+        background: rgba(99, 102, 241, 0.35);
+        border-color: rgba(99, 102, 241, 0.55);
+        color: #3730a3;
+    }
+    .size-3 {
+        background: rgba(99, 102, 241, 0.5);
+        border-color: rgba(99, 102, 241, 0.7);
+        color: #312e81;
+    }
+    .size-4 {
+        background: rgba(99, 102, 241, 0.7);
+        border-color: rgba(99, 102, 241, 0.85);
+        color: white;
+    }
+    .size-5 {
+        background: rgba(79, 70, 229, 0.9);
+        border-color: #4338ca;
+        color: white;
+    }
+
+    /* Grid cells: outline only when active */
+    .sim-cell.size-1,
+    .sim-cell.size-2,
+    .sim-cell.size-3,
+    .sim-cell.size-4,
+    .sim-cell.size-5 {
+        background: transparent;
+        border-color: rgba(99, 102, 241, 0.45);
+        color: #312e81;
+    }
+
+    /* Disease color overlays via box-shadow inset */
+    .sim-cell.overlay-RED {
+        box-shadow: inset 0 0 0 100px rgba(239, 68, 68, 0.35);
+    }
+    .sim-cell.overlay-YELLOW {
+        box-shadow: inset 0 0 0 100px rgba(234, 179, 8, 0.35);
+    }
+    .sim-cell.overlay-BLUE {
+        box-shadow: inset 0 0 0 100px rgba(59, 130, 246, 0.35);
+    }
+
+    /* Grid actions */
+    .grid-actions {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 12px;
+    }
+
+    .btn-clear {
+        background: var(--bg-light);
+        border: 2px solid #e2e8f0;
+        color: var(--text-dark);
+        padding: 8px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-clear:hover {
+        background: #edf2f7;
+        border-color: #cbd5e0;
+    }
+
+    /* Size legend */
+    .grid-size-legend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    /* Scores table */
+    .scores-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .scores-table th,
+    .scores-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+    }
+
+    .scores-table th {
+        background: var(--bg-light);
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .scores-table td {
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+
+    .scores-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .scores-table tbody tr[data-grid-color] {
+        cursor: pointer;
+        transition: background-color 0.15s;
+    }
+
+    .scores-table tbody tr[data-grid-color]:hover {
+        background-color: rgba(99, 102, 241, 0.08);
+    }
+
+    .scores-table tbody tr.overlay-active {
+        background-color: rgba(99, 102, 241, 0.12);
+    }
+
+    /* htmx loading indicator */
+    .htmx-indicator {
+        display: none;
+    }
+    .htmx-request .htmx-indicator {
+        display: inline-block;
+    }
+    .htmx-request #scoresTableArea {
+        opacity: 0.6;
+        transition: opacity 0.15s;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ diseases|json_script:"diseasesData" }}
+
+<div x-data="simulator()" class="simulator-container">
+    <h2 class="page-header">
+        <i class="bi bi-calculator"></i>分數模擬器
+    </h2>
+
+    <!-- Threshold Card -->
+    <div class="card">
+        <div class="section-title">
+            <i class="bi bi-sliders"></i> 嚴重度閾值設定
+        </div>
+        <div class="threshold-inputs">
+            <div class="threshold-group">
+                <span class="severity-badge severity-light">輕微</span>
+                <input type="number"
+                       x-model.number="thresholds.lightMin"
+                       @input="recalculate()"
+                       min="1" max="99">
+                <span class="threshold-sep">~</span>
+                <input type="number"
+                       x-model.number="thresholds.lightMax"
+                       @input="recalculate()"
+                       min="1" max="99">
+            </div>
+            <div class="threshold-group">
+                <span class="severity-badge severity-mild">中度</span>
+                <span class="threshold-derived"
+                      x-text="thresholds.lightMax + 1"></span>
+                <span class="threshold-sep">~</span>
+                <input type="number"
+                       x-model.number="thresholds.mildMax"
+                       @input="recalculate()"
+                       min="1" max="99">
+            </div>
+            <div class="threshold-group">
+                <span class="severity-badge severity-serious">嚴重</span>
+                <span class="threshold-derived"
+                      x-text="thresholds.mildMax + 1"></span>
+                <span class="threshold-sep">+</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- htmx trigger (hidden) -->
+    <div x-ref="scorer"
+         hx-post="{% url 'diagnosis:score_simulator_api' %}"
+         hx-trigger="recalc delay:200ms"
+         hx-target="#htmxSink"
+         hx-swap="innerHTML"
+         style="display:none">
+    </div>
+    <div id="htmxSink" style="display:none"></div>
+
+    <!-- Two-column layout -->
+    <div class="simulator-layout">
+        <div class="card">
+            <div class="section-title">
+                <i class="bi bi-grid-3x3"></i> 模擬網格
+            </div>
+            <div class="sim-grid-wrapper">
+                <div class="sim-grid-container"
+                     x-ref="simGrid"></div>
+            </div>
+            <div class="grid-actions">
+                <button @click="clearGrid()" class="btn-clear">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    清除全部
+                </button>
+            </div>
+            <div class="grid-size-legend">
+                <span>點擊循環:</span>
+                <span class="legend-cell">0</span>
+                <span class="legend-cell size-1">1</span>
+                <span class="legend-cell size-2">2</span>
+                <span class="legend-cell size-3">3</span>
+                <span class="legend-cell size-4">4</span>
+                <span class="legend-cell size-5">5</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <i class="bi bi-bar-chart"></i> 疾病分數
+                <span class="section-subtitle">
+                    (點擊列可預覽網格配色)
+                </span>
+            </div>
+            <div id="scoresTableArea">
+                <table class="scores-table">
+                    <thead>
+                        <tr>
+                            <th>疾病名稱</th>
+                            <th>分數</th>
+                            <th>嚴重度</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0/dist/htmx.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+<script>
+document.body.addEventListener('htmx:configRequest', function(e) {
+    e.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+    var data = window.__getSimData();
+    for (var key in data) {
+        e.detail.parameters[key] = data[key];
+    }
+});
+
+window.__getSimData = function() { return {}; };
+
+function simulator() {
+    return {
+        userGrid: new Array(81).fill(0),
+        thresholds: {
+            lightMin: 4,
+            lightMax: 8,
+            mildMax: 18
+        },
+
+        init() {
+            var self = this;
+            window.__getSimData = function() {
+                return {
+                    user_grid: JSON.stringify(self.userGrid),
+                    light_min: self.thresholds.lightMin,
+                    light_max: self.thresholds.lightMax,
+                    mild_max: self.thresholds.mildMax
+                };
+            };
+            this.buildGrid();
+            this.setupRowClickDelegation();
+            this.recalculate();
+        },
+
+        buildGrid() {
+            var grid = this.$refs.simGrid;
+            for (var br = 0; br < 3; br++) {
+                for (var bc = 0; bc < 3; bc++) {
+                    var block = document.createElement('div');
+                    block.className = 'sim-block';
+                    for (var cr = 0; cr < 3; cr++) {
+                        for (var cc = 0; cc < 3; cc++) {
+                            var i = (br * 3 + cr) * 9
+                                + (bc * 3 + cc);
+                            var cell =
+                                document.createElement('div');
+                            cell.className = 'sim-cell';
+                            cell.dataset.index = i;
+                            cell.addEventListener(
+                                'click',
+                                this.toggleCell.bind(this, i)
+                            );
+                            block.appendChild(cell);
+                        }
+                    }
+                    grid.appendChild(block);
+                }
+            }
+        },
+
+        toggleCell(i) {
+            this.userGrid[i] =
+                (this.userGrid[i] + 1) % 6;
+            this.updateCellVisual(i);
+            this.recalculate();
+        },
+
+        updateCellVisual(i) {
+            var cell = this.$refs.simGrid
+                .querySelector('[data-index="' + i + '"]');
+            if (!cell) return;
+            for (var s = 0; s <= 5; s++) {
+                cell.classList.remove('size-' + s);
+            }
+            cell.classList.add(
+                'size-' + this.userGrid[i]
+            );
+            cell.textContent =
+                this.userGrid[i] > 0
+                    ? this.userGrid[i] : '';
+        },
+
+        recalculate() {
+            var self = this;
+            this.$nextTick(function() {
+                htmx.trigger(self.$refs.scorer, 'recalc');
+            });
+        },
+
+        clearGrid() {
+            this.userGrid.fill(0);
+            for (var i = 0; i < 81; i++) {
+                this.updateCellVisual(i);
+            }
+            this.recalculate();
+        },
+
+        setupRowClickDelegation() {
+            var self = this;
+            var area = document
+                .getElementById('scoresTableArea');
+            self._activeColor = null;
+
+            area.addEventListener(
+                'click', function(e) {
+                    var row = e.target
+                        .closest('tr[data-grid-color]');
+                    if (!row) return;
+                    var color = row.dataset.gridColor;
+                    if (self._activeColor === color) {
+                        self.clearOverlay();
+                        row.classList.remove(
+                            'overlay-active'
+                        );
+                        self._activeColor = null;
+                    } else {
+                        var prev = area.querySelector(
+                            'tr.overlay-active'
+                        );
+                        if (prev) {
+                            prev.classList.remove(
+                                'overlay-active'
+                            );
+                        }
+                        self._activeColor = color;
+                        row.classList.add(
+                            'overlay-active'
+                        );
+                        self.applyOverlay(
+                            JSON.parse(color)
+                        );
+                    }
+                }
+            );
+
+            document.body.addEventListener(
+                'htmx:afterSettle', function() {
+                    if (!self._activeColor) return;
+                    var rows = area.querySelectorAll(
+                        'tr[data-grid-color]'
+                    );
+                    for (var i = 0; i < rows.length;
+                         i++) {
+                        if (rows[i].dataset.gridColor
+                            === self._activeColor) {
+                            rows[i].classList.add(
+                                'overlay-active'
+                            );
+                            break;
+                        }
+                    }
+                }
+            );
+        },
+
+        applyOverlay(gridColor) {
+            this.$refs.simGrid
+                .querySelectorAll('.sim-cell')
+                .forEach(function(cell) {
+                    var i = parseInt(
+                        cell.dataset.index
+                    );
+                    cell.classList.remove(
+                        'overlay-RED',
+                        'overlay-YELLOW',
+                        'overlay-BLUE'
+                    );
+                    if (gridColor[i]) {
+                        cell.classList.add(
+                            'overlay-' + gridColor[i]
+                        );
+                    }
+                });
+        },
+
+        clearOverlay() {
+            this.$refs.simGrid
+                .querySelectorAll('.sim-cell')
+                .forEach(function(cell) {
+                    cell.classList.remove(
+                        'overlay-RED',
+                        'overlay-YELLOW',
+                        'overlay-BLUE'
+                    );
+                });
+        }
+    };
+}
+</script>
+{% endblock %}

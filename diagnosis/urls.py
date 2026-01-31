@@ -10,4 +10,6 @@ urlpatterns = [
     path('result/<uuid:examination_id>/', views.result_view, name='result'),
     path('diseases/', views.diseases_view, name='diseases'),
     path('grid-poc/', views.grid_poc_view, name='grid_poc'),
+    path('score-simulator/', views.score_simulator_view, name='score_simulator'),
+    path('api/score-simulator/', views.score_simulator_api, name='score_simulator_api'),
 ]

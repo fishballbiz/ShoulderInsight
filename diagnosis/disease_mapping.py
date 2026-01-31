@@ -224,3 +224,61 @@ def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
         }
 
     return result
+
+
+def simulate_disease_scores(
+    user_grid: list[int],
+    light_min: int = 4,
+    light_max: int = 8,
+    mild_max: int = 18,
+) -> dict:
+    """Score diseases against a user grid without hand filtering."""
+    diseases = _load_diseases()
+    min_display = light_min
+    thresholds = {
+        'light': (light_min, light_max),
+        'mild': (light_max + 1, mild_max),
+        'serious': (mild_max + 1, float('inf')),
+    }
+
+    scored = []
+    for disease in diseases:
+        score = sum(
+            user_grid[i] * COLOR_SCORES.get(
+                disease['grid_color'][i], 0
+            )
+            for i in range(81)
+            if user_grid[i] > 0
+            and disease['grid_color'][i] is not None
+        )
+        severity = None
+        if score >= min_display:
+            for level, (lo, hi) in thresholds.items():
+                if lo <= score <= hi:
+                    severity = level
+                    break
+        scored.append({
+            'id': disease['id'],
+            'name_zh': disease['name_zh'],
+            'name_en': disease['name_en'],
+            'grid_color': disease['grid_color'],
+            'score': score,
+            'severity': severity,
+            'severity_zh': SEVERITY_LABELS.get(severity, ''),
+        })
+
+    by_score = sorted(scored, key=lambda d: d['score'], reverse=True)
+    visible = [
+        d for d in by_score if d['score'] >= min_display
+    ][:2]
+    for i, d in enumerate(visible):
+        if i == 0:
+            d['rank'] = 'primary'
+            d['rank_zh'] = '主要'
+        else:
+            gap = visible[0]['score'] - d['score']
+            primary = gap <= PRIMARY_RANK_GAP
+            d['rank'] = 'primary' if primary else 'secondary'
+            d['rank_zh'] = '主要' if primary else '次要'
+
+    return {'scored': scored, 'visible': visible}

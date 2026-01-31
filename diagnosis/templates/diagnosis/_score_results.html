@@ -1,0 +1,26 @@
+<div id="scoresTableArea" hx-swap-oob="innerHTML">
+    <table class="scores-table">
+        <thead>
+            <tr>
+                <th>疾病名稱</th>
+                <th>分數</th>
+                <th>嚴重度</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in scored %}
+            <tr data-grid-color="{{ d.grid_color_json }}">
+                <td>{{ d.name_zh }}</td>
+                <td>{{ d.score }}</td>
+                <td>
+                    {% if d.severity %}
+                    <span class="severity-badge severity-{{ d.severity }}">
+                        {{ d.severity_zh }}
+                    </span>
+                    {% else %}-{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

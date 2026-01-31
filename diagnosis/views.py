@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import uuid
@@ -10,7 +11,11 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
-from .disease_mapping import accumulate_disease_scores, get_all_diseases
+from .disease_mapping import (
+    accumulate_disease_scores,
+    get_all_diseases,
+    simulate_disease_scores,
+)
 from .image_processing import parse_grid, calibrate_from_samples, process_image
 
 logger = logging.getLogger(__name__)
@@ -263,3 +268,35 @@ def grid_poc_view(request):
         'results': results,
         'calibration': calibration
     })
+
+
+def score_simulator_view(request):
+    """Score simulator page for interactive disease scoring."""
+    diseases = get_all_diseases()
+    return render(request, 'diagnosis/score_simulator.html', {
+        'diseases': diseases,
+    })
+
+
+@require_POST
+def score_simulator_api(request):
+    """API endpoint for score simulation via htmx."""
+    try:
+        user_grid = json.loads(
+            request.POST.get('user_grid', '[]')
+        )
+    except (json.JSONDecodeError, TypeError):
+        user_grid = [0] * 81
+    if not isinstance(user_grid, list) or len(user_grid) != 81:
+        user_grid = [0] * 81
+    result = simulate_disease_scores(
+        user_grid=user_grid,
+        light_min=int(request.POST.get('light_min', 4)),
+        light_max=int(request.POST.get('light_max', 8)),
+        mild_max=int(request.POST.get('mild_max', 18)),
+    )
+    for d in result['scored']:
+        d['grid_color_json'] = json.dumps(d['grid_color'])
+    return render(
+        request, 'diagnosis/_score_results.html', result,
+    )

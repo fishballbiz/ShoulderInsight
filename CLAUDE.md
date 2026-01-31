@@ -66,6 +66,8 @@ analyze_api:
 - `/diagnosis/result/<uuid>/` — Per-hand disease results with grid visualization
 - `/diagnosis/diseases/` — All disease definitions reference
 - `/diagnosis/grid-poc/` — Grid detection debug/test page
+- `/diagnosis/score-simulator/` — Interactive score simulator (Alpine.js + htmx)
+- `/diagnosis/api/score-simulator/` — Score simulation API (POST, htmx partial)
 
 ### Data Files
 - `data/diseases.json` — 11 disease definitions with grid_color patterns
