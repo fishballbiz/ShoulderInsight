@@ -254,7 +254,7 @@ def _build_median_grid(parsed_grids: list[dict]) -> tuple[list, list]:
     """
     Build a merged grid using the median size per cell across all images.
 
-    For each cell, collect all observed sizes and take the median.
+    Every image contributes to every cell (0 for no circle detected).
     The color is taken from whichever image detected a dot there.
 
     Returns:
@@ -271,7 +271,7 @@ def _build_median_grid(parsed_grids: list[dict]) -> tuple[list, list]:
         for i in range(81):
             if grid_color[i] is not None:
                 cell_colors[i] = grid_color[i]
-                cell_sizes[i].append(grid_size[i] or 1)
+            cell_sizes[i].append(grid_size[i] or 0)
 
     median_sizes = [0] * 81
     for i in range(81):
