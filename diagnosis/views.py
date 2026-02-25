@@ -179,12 +179,14 @@ def result_view(request, examination_id):
             filename = os.path.basename(path)
             image_urls.append(f'{settings.MEDIA_URL}uploads/{filename}')
 
-    left_hand = accumulated.get('left_hand', {
-        'diseases': [], 'all_diseases': [], 'dot_count': 0
-    })
-    right_hand = accumulated.get('right_hand', {
-        'diseases': [], 'all_diseases': [], 'dot_count': 0
-    })
+    empty_hand = {
+        'possible_diseases': [],
+        'attention_diseases': [],
+        'all_diseases': [],
+        'dot_count': 0,
+    }
+    left_hand = accumulated.get('left_hand', empty_hand)
+    right_hand = accumulated.get('right_hand', empty_hand)
     merged_grid = accumulated.get('merged_grid', {
         'grid_color': [None] * 81, 'grid_size': [0] * 81
     })

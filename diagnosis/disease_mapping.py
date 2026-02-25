@@ -59,28 +59,57 @@ def _build_report_sections(
     return sections
 
 
-SEVERITY_THRESHOLDS = {
-    'light': (4, 8),
-    'mild': (9, 18),
-    'serious': (19, float('inf')),
-}
-
 SEVERITY_LABELS = {
     'light': '輕微',
     'mild': '中度',
     'serious': '嚴重',
 }
 
-MIN_DISPLAY_SCORE = 4
-PRIMARY_RANK_GAP = 3
+POSSIBLE_SEVERITY = 'serious'
+ATTENTION_SEVERITY = 'light'
+MAX_DISPLAY_PER_GROUP = 3
+SERIOUS_SIZE_THRESHOLD = 5
+SERIOUS_COUNT_THRESHOLD = 4
+SERIOUS_COUNT_MIN = 2
 
 
-def _classify_severity(score: int) -> str | None:
-    """Classify score into severity level. Returns None if below threshold."""
-    for level, (low, high) in SEVERITY_THRESHOLDS.items():
-        if low <= score <= high:
-            return level
-    return None
+def _has_red_cells(disease_grid_color: list) -> bool:
+    """Check if a disease pattern contains any RED cells."""
+    return 'RED' in disease_grid_color
+
+
+def _is_serious_for_hand(
+    grid_color: list,
+    grid_size: list,
+    disease_grid_color: list,
+    hand_color: str,
+) -> bool:
+    """
+    Determine if a disease meets serious criteria for a specific hand.
+
+    For diseases with RED grids: serious if any matching red cell has
+    circle size 5, or 2+ matching red cells have circle size >= 4.
+    For diseases without RED grids: same check using YELLOW cells.
+    """
+    target_color = 'RED' if _has_red_cells(disease_grid_color) else 'YELLOW'
+
+    matching_sizes: list[int] = []
+    for i in range(81):
+        if disease_grid_color[i] != target_color:
+            continue
+        if grid_color[i] != hand_color:
+            continue
+        size = grid_size[i] if grid_size else 0
+        size = max(0, min(MAX_CIRCLE_SIZE, size or 0))
+        if size > 0:
+            matching_sizes.append(size)
+
+    if any(s >= SERIOUS_SIZE_THRESHOLD for s in matching_sizes):
+        return True
+    count_large = sum(
+        1 for s in matching_sizes if s >= SERIOUS_COUNT_THRESHOLD
+    )
+    return count_large >= SERIOUS_COUNT_MIN
 
 
 def _score_disease_for_hand(
@@ -182,10 +211,19 @@ def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
     }
 
     for hand, hand_zh in [('left', '左手'), ('right', '右手')]:
+        hand_color = (
+            LEFT_HAND_COLOR if hand == 'left' else RIGHT_HAND_COLOR
+        )
         all_diseases = []
         for disease in diseases:
             score = hand_scores[hand][disease['id']]
-            severity = _classify_severity(score) if score >= MIN_DISPLAY_SCORE else None
+            is_serious = _is_serious_for_hand(
+                median_color, median_size,
+                disease['grid_color'], hand_color
+            )
+            severity = POSSIBLE_SEVERITY if is_serious else (
+                ATTENTION_SEVERITY if score > 0 else None
+            )
             report_data = disease.get('report', {})
             report_sections = _build_report_sections(report_data, severity)
             disclaimer = report_data.get('disclaimer', '')
@@ -197,29 +235,29 @@ def accumulate_disease_scores(parsed_grids: list[dict]) -> dict:
                 'report_sections': report_sections,
                 'disclaimer': disclaimer,
                 'score': score,
+                'is_serious': is_serious,
                 'severity': severity,
                 'severity_zh': SEVERITY_LABELS.get(severity, ''),
             })
 
         all_diseases.sort(key=lambda d: d['score'], reverse=True)
 
-        visible = [d for d in all_diseases if d['score'] >= MIN_DISPLAY_SCORE]
-
-        for i, d in enumerate(visible):
-            if i == 0:
-                d['rank'] = 'primary'
-            elif i == 1:
-                diff = visible[0]['score'] - d['score']
-                d['rank'] = 'primary' if diff <= PRIMARY_RANK_GAP else 'secondary'
-            else:
-                d['rank'] = None
+        possible = [
+            d for d in all_diseases if d['is_serious']
+        ][:MAX_DISPLAY_PER_GROUP]
+        possible_ids = {d['id'] for d in possible}
+        attention = [
+            d for d in all_diseases
+            if d['score'] > 0 and d['id'] not in possible_ids
+        ][:MAX_DISPLAY_PER_GROUP]
 
         result[f'{hand}_hand'] = {
             'hand': hand,
             'hand_zh': hand_zh,
-            'color': LEFT_HAND_COLOR if hand == 'left' else RIGHT_HAND_COLOR,
+            'color': hand_color,
             'dot_count': hand_dot_counts[hand],
-            'diseases': visible[:2],
+            'possible_diseases': possible,
+            'attention_diseases': attention,
             'all_diseases': all_diseases,
         }
 
@@ -235,6 +273,7 @@ def simulate_disease_scores(
     """Score diseases against a user grid without hand filtering."""
     diseases = _load_diseases()
     min_display = light_min
+    rank_gap = 3
     thresholds = {
         'light': (light_min, light_max),
         'mild': (light_max + 1, mild_max),
@@ -277,7 +316,7 @@ def simulate_disease_scores(
             d['rank_zh'] = '主要'
         else:
             gap = visible[0]['score'] - d['score']
-            primary = gap <= PRIMARY_RANK_GAP
+            primary = gap <= rank_gap
             d['rank'] = 'primary' if primary else 'secondary'
             d['rank_zh'] = '主要' if primary else '次要'
 

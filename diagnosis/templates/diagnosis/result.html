@@ -437,6 +437,34 @@
         color: #48bb78;
     }
 
+    /* Disease group styles */
+    .disease-group {
+        margin-bottom: 24px;
+    }
+
+    .group-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        padding: 10px 16px;
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+
+    .group-title.possible-title {
+        background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+        color: #c53030;
+        border-left: 4px solid #e53e3e;
+    }
+
+    .group-title.attention-title {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        color: #92400e;
+        border-left: 4px solid #f59e0b;
+    }
+
     /* Disease card styles */
     .disease-card {
         border-left: 4px solid var(--primary-color);
@@ -451,21 +479,21 @@
         border-left-color: #48bb78;
     }
 
-    .disease-card.disease-primary {
+    .disease-card.disease-possible {
         padding: 24px;
     }
 
-    .disease-card.disease-secondary {
+    .disease-card.disease-possible {
+        border-left-color: #e53e3e;
+    }
+
+    .disease-card.disease-attention {
         padding: 16px;
         opacity: 0.9;
     }
 
-    .disease-card.disease-secondary .disease-name {
+    .disease-card.disease-attention .disease-name {
         font-size: 1.05rem;
-    }
-
-    .disease-card.disease-secondary .disease-report {
-        font-size: 0.9rem;
     }
 
     .disease-header {
@@ -496,37 +524,7 @@
         flex-wrap: wrap;
     }
 
-    .severity-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: white;
-    }
 
-    .severity-badge.severity-light {
-        background: linear-gradient(135deg, #48bb78, #38a169);
-    }
-
-    .severity-badge.severity-mild {
-        background: linear-gradient(135deg, #ed8936, #dd6b20);
-    }
-
-    .severity-badge.severity-serious {
-        background: linear-gradient(135deg, #e53e3e, #c53030);
-    }
-
-    .score-label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        font-weight: 500;
-        padding: 4px 10px;
-        background: var(--bg-light);
-        border-radius: 16px;
-    }
 
     .symptom-list {
         list-style: none;
@@ -882,10 +880,26 @@
             background: #e53e3e !important;
         }
 
+        .group-title.possible-title {
+            background: #fff5f5 !important;
+            color: #c53030 !important;
+            border-left: 3px solid #e53e3e !important;
+        }
+
+        .group-title.attention-title {
+            background: #fffbeb !important;
+            color: #92400e !important;
+            border-left: 3px solid #f59e0b !important;
+        }
+
         .disease-card {
             break-inside: avoid;
             page-break-inside: avoid;
             border-left: 3px solid #4299e1 !important;
+        }
+
+        .disease-card.disease-possible {
+            border-left-color: #e53e3e !important;
         }
 
         .disease-report {
@@ -916,22 +930,6 @@
         .grid-cell.CYAN {
             background: #4299e1 !important;
             border-color: #3182ce !important;
-        }
-
-        .severity-badge {
-            color: white !important;
-        }
-
-        .severity-badge.severity-light {
-            background: #38a169 !important;
-        }
-
-        .severity-badge.severity-mild {
-            background: #dd6b20 !important;
-        }
-
-        .severity-badge.severity-serious {
-            background: #c53030 !important;
         }
 
         .symptom-list li {
@@ -1185,40 +1183,65 @@
             <span>左手分析</span>
             <span class="hand-dot-count">{{ left_hand.dot_count }} 個偵測點</span>
         </div>
-        {% if left_hand.diseases %}
-            {% for disease in left_hand.diseases %}
-            <div class="card disease-card left-hand-disease {% if disease.rank == 'primary' %}disease-primary{% else %}disease-secondary{% endif %}">
-                <div class="disease-header">
-                    <div>
-                        <span class="disease-name">{{ disease.name_zh }}</span>
-                        <span class="disease-name-en">{{ disease.name_en }}</span>
-                    </div>
-                    <div class="disease-meta">
-                        {% if disease.severity %}
-                        <span class="severity-badge severity-{{ disease.severity }}">
-                            {{ disease.severity_zh }}
-                        </span>
-                        {% endif %}
-                        <span class="score-label">分數: {{ disease.score }}</span>
-                    </div>
+        {% if left_hand.possible_diseases or left_hand.attention_diseases %}
+            {% if left_hand.possible_diseases %}
+            <div class="disease-group">
+                <div class="group-title possible-title">
+                    <i class="bi bi-exclamation-triangle-fill"></i> 可能疾病
                 </div>
-                <ul class="symptom-list">
-                    {% for symptom in disease.symptoms %}
-                    <li>{{ symptom }}</li>
-                    {% endfor %}
-                </ul>
-                {% if disease.report_sections %}
-                <div class="disease-report">
-                    {% for section in disease.report_sections %}
-                    {{ section.content|linebreaks }}
-                    {% endfor %}
+                {% for disease in left_hand.possible_diseases %}
+                <div class="card disease-card left-hand-disease disease-possible">
+                    <div class="disease-header">
+                        <div>
+                            <span class="disease-name">{{ disease.name_zh }}</span>
+                            <span class="disease-name-en">{{ disease.name_en }}</span>
+                        </div>
+                        <div class="disease-meta">
+                        </div>
+                    </div>
+                    <ul class="symptom-list">
+                        {% for symptom in disease.symptoms %}
+                        <li>{{ symptom }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if disease.report_sections %}
+                    <div class="disease-report">
+                        {% for section in disease.report_sections %}
+                        {{ section.content|linebreaks }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if disease.disclaimer %}
+                    <p class="report-disclaimer">{{ disease.disclaimer }}</p>
+                    {% endif %}
                 </div>
-                {% endif %}
-                {% if disease.disclaimer %}
-                <p class="report-disclaimer">{{ disease.disclaimer }}</p>
-                {% endif %}
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% endif %}
+            {% if left_hand.attention_diseases %}
+            <div class="disease-group">
+                <div class="group-title attention-title">
+                    <i class="bi bi-info-circle-fill"></i> 需要注意
+                </div>
+                {% for disease in left_hand.attention_diseases %}
+                <div class="card disease-card left-hand-disease disease-attention">
+                    <div class="disease-header">
+                        <div>
+                            <span class="disease-name">{{ disease.name_zh }}</span>
+                            <span class="disease-name-en">{{ disease.name_en }}</span>
+                        </div>
+                        <div class="disease-meta">
+                        </div>
+                    </div>
+                    <ul class="symptom-list">
+                        {% for symptom in disease.symptoms %}
+                        <li>{{ symptom }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         {% else %}
             <div class="no-dots-message">
                 <i class="bi bi-check-circle-fill"></i>
@@ -1238,40 +1261,65 @@
             <span>右手分析</span>
             <span class="hand-dot-count">{{ right_hand.dot_count }} 個偵測點</span>
         </div>
-        {% if right_hand.diseases %}
-            {% for disease in right_hand.diseases %}
-            <div class="card disease-card right-hand-disease {% if disease.rank == 'primary' %}disease-primary{% else %}disease-secondary{% endif %}">
-                <div class="disease-header">
-                    <div>
-                        <span class="disease-name">{{ disease.name_zh }}</span>
-                        <span class="disease-name-en">{{ disease.name_en }}</span>
-                    </div>
-                    <div class="disease-meta">
-                        {% if disease.severity %}
-                        <span class="severity-badge severity-{{ disease.severity }}">
-                            {{ disease.severity_zh }}
-                        </span>
-                        {% endif %}
-                        <span class="score-label">分數: {{ disease.score }}</span>
-                    </div>
+        {% if right_hand.possible_diseases or right_hand.attention_diseases %}
+            {% if right_hand.possible_diseases %}
+            <div class="disease-group">
+                <div class="group-title possible-title">
+                    <i class="bi bi-exclamation-triangle-fill"></i> 可能疾病
                 </div>
-                <ul class="symptom-list">
-                    {% for symptom in disease.symptoms %}
-                    <li>{{ symptom }}</li>
-                    {% endfor %}
-                </ul>
-                {% if disease.report_sections %}
-                <div class="disease-report">
-                    {% for section in disease.report_sections %}
-                    {{ section.content|linebreaks }}
-                    {% endfor %}
+                {% for disease in right_hand.possible_diseases %}
+                <div class="card disease-card right-hand-disease disease-possible">
+                    <div class="disease-header">
+                        <div>
+                            <span class="disease-name">{{ disease.name_zh }}</span>
+                            <span class="disease-name-en">{{ disease.name_en }}</span>
+                        </div>
+                        <div class="disease-meta">
+                        </div>
+                    </div>
+                    <ul class="symptom-list">
+                        {% for symptom in disease.symptoms %}
+                        <li>{{ symptom }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if disease.report_sections %}
+                    <div class="disease-report">
+                        {% for section in disease.report_sections %}
+                        {{ section.content|linebreaks }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if disease.disclaimer %}
+                    <p class="report-disclaimer">{{ disease.disclaimer }}</p>
+                    {% endif %}
                 </div>
-                {% endif %}
-                {% if disease.disclaimer %}
-                <p class="report-disclaimer">{{ disease.disclaimer }}</p>
-                {% endif %}
+                {% endfor %}
             </div>
-            {% endfor %}
+            {% endif %}
+            {% if right_hand.attention_diseases %}
+            <div class="disease-group">
+                <div class="group-title attention-title">
+                    <i class="bi bi-info-circle-fill"></i> 需要注意
+                </div>
+                {% for disease in right_hand.attention_diseases %}
+                <div class="card disease-card right-hand-disease disease-attention">
+                    <div class="disease-header">
+                        <div>
+                            <span class="disease-name">{{ disease.name_zh }}</span>
+                            <span class="disease-name-en">{{ disease.name_en }}</span>
+                        </div>
+                        <div class="disease-meta">
+                        </div>
+                    </div>
+                    <ul class="symptom-list">
+                        {% for symptom in disease.symptoms %}
+                        <li>{{ symptom }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         {% else %}
             <div class="no-dots-message">
                 <i class="bi bi-check-circle-fill"></i>
