@@ -7,7 +7,7 @@ services:
       - media_data:/media
       - session_data:/tmp/django_sessions
     ports:
-      - "8000:8000"
+      - "8181:8000"
     environment:
       - DEBUG=1
       - SECRET_KEY=dev_secret_key
