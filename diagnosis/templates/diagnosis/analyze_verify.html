@@ -1,6 +1,6 @@
 {% extends 'diagnosis/base.html' %}
 
-{% block title %}Grid Detection POC - 智慧肩部復健 AI 診斷平台{% endblock %}
+{% block title %}分析驗證 - 智慧肩部復健 AI 診斷平台{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -145,7 +145,7 @@
 
     .grid-cell {
         width: 40px;
-        height: 40px;
+        height: 48px;
         border-radius: 2px;
         display: flex;
         flex-direction: column;
@@ -165,6 +165,11 @@
         font-size: 0.8rem;
         font-weight: 700;
         color: white;
+    }
+
+    .grid-cell .cell-ratio {
+        font-size: 0.5rem;
+        color: rgba(255, 255, 255, 0.85);
     }
 
     .grid-cell.GREEN {
@@ -194,35 +199,6 @@
     .grid-cell.YELLOW .cell-num {
         color: rgba(255,255,255,0.8);
     }
-
-    .legend {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        margin-top: 15px;
-        flex-wrap: wrap;
-    }
-
-    .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-
-    .legend-dot {
-        width: 14px;
-        height: 14px;
-        border-radius: 3px;
-    }
-
-    .legend-dot.green { background: #38a169; }
-    .legend-dot.cyan { background: #0bc5ea; }
-    .legend-dot.blue { background: #3182ce; }
-    .legend-dot.red { background: #e53e3e; }
-    .legend-dot.yellow { background: #d69e2e; }
-    .legend-dot.empty { background: #cbd5e0; }
 
     .error-message {
         color: #e53e3e;
@@ -283,155 +259,15 @@
         white-space: pre;
     }
 
-    .arrays-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
+    .python-arrays-toggle {
         margin-top: 20px;
     }
 
-    @media (max-width: 900px) {
-        .arrays-row {
-            grid-template-columns: 1fr;
-        }
+    .python-arrays-toggle > summary {
+        cursor: pointer;
+        user-select: none;
+        margin-bottom: 10px;
     }
-
-    .calibration-card {
-        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
-    }
-
-    .calibration-content {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 20px;
-    }
-
-    @media (max-width: 1000px) {
-        .calibration-content {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .calibration-section h4 {
-        font-size: 0.9rem;
-        color: var(--primary-color);
-        margin-bottom: 12px;
-    }
-
-    .histogram {
-        font-size: 0.75rem;
-    }
-
-    .hist-bar {
-        display: flex;
-        align-items: center;
-        margin-bottom: 4px;
-    }
-
-    .hist-label {
-        width: 80px;
-        color: var(--text-muted);
-        font-family: monospace;
-    }
-
-    .hist-value {
-        background: linear-gradient(90deg, #3182ce, #63b3ed);
-        color: white;
-        padding: 2px 8px;
-        border-radius: 4px;
-        min-width: 25px;
-        text-align: center;
-        font-size: 0.7rem;
-    }
-
-    .thresholds {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .threshold-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .size-badge {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        color: white;
-    }
-
-    .size-badge.size-1 { background: #a0aec0; }
-    .size-badge.size-2 { background: #68d391; }
-    .size-badge.size-3 { background: #f6ad55; }
-    .size-badge.size-4 { background: #fc8181; }
-
-    .ratios-list {
-        font-family: monospace;
-        font-size: 0.7rem;
-        background: white;
-        padding: 10px;
-        border-radius: 6px;
-        max-height: 150px;
-        overflow-y: auto;
-        margin: 0;
-    }
-
-    .array-output.full-width {
-        margin-top: 20px;
-    }
-
-    .aligned-arrays {
-        display: flex;
-        gap: 30px;
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        overflow-x: auto;
-    }
-
-    .array-col {
-        font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
-        font-size: 0.75rem;
-        line-height: 1.8;
-    }
-
-    .array-header {
-        font-weight: 600;
-        color: var(--primary-color);
-        margin-bottom: 8px;
-        padding-bottom: 4px;
-        border-bottom: 2px solid var(--primary-color);
-    }
-
-    .array-cell {
-        display: inline-block;
-        width: 55px;
-        text-align: center;
-        padding: 2px 4px;
-        margin: 1px;
-        border-radius: 4px;
-        background: #f7fafc;
-    }
-
-    .array-cell.has-color {
-        background: #e6fffa;
-        color: #047857;
-        font-weight: 500;
-    }
-
-    .array-cell.size-0 { background: #f7fafc; color: #a0aec0; }
-    .array-cell.size-1 { background: #e2e8f0; color: #4a5568; }
-    .array-cell.size-2 { background: #c6f6d5; color: #22543d; }
-    .array-cell.size-3 { background: #feebc8; color: #744210; }
-    .array-cell.size-4 { background: #fed7d7; color: #822727; }
 
     .python-arrays {
         display: grid;
@@ -464,59 +300,9 @@
 {% block content %}
 <div class="poc-container">
     <div class="page-header">
-        <h1><i class="bi bi-grid-3x3-gap me-2"></i>Grid Detection POC</h1>
-        <p>Testing OpenCV-based grid detection on sample images</p>
+        <h1><i class="bi bi-grid-3x3-gap me-2"></i>分析驗證</h1>
+        <p>Grid detection + inscribed circle sizing (distance transform)</p>
     </div>
-
-    {% if calibration %}
-    <div class="result-card calibration-card">
-        <div class="result-header">
-            <span class="filename">Calibration Analysis</span>
-            <span class="status-badge status-success">{{ calibration.count }} dots found (min: {{ calibration.min }}, max: {{ calibration.max }})</span>
-        </div>
-        <div class="calibration-content">
-            <div class="calibration-section">
-                <h4>Coverage Ratio Distribution</h4>
-                <div class="histogram">
-                    {% for range, count in calibration.histogram.items %}
-                    {% if count > 0 %}
-                    <div class="hist-bar">
-                        <div class="hist-label">{{ range }}</div>
-                        <div class="hist-value" style="width: {% widthratio count calibration.count 150 %}px;">{{ count }}</div>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="calibration-section">
-                <h4>Calculated Thresholds</h4>
-                <div class="thresholds">
-                    <div class="threshold-item">
-                        <span class="size-badge size-1">1</span>
-                        <span>{{ calibration.size_ranges.size_1 }}</span>
-                    </div>
-                    <div class="threshold-item">
-                        <span class="size-badge size-2">2</span>
-                        <span>{{ calibration.size_ranges.size_2 }}</span>
-                    </div>
-                    <div class="threshold-item">
-                        <span class="size-badge size-3">3</span>
-                        <span>{{ calibration.size_ranges.size_3 }}</span>
-                    </div>
-                    <div class="threshold-item">
-                        <span class="size-badge size-4">4</span>
-                        <span>{{ calibration.size_ranges.size_4 }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="calibration-section">
-                <h4>All Detected Ratios (sorted)</h4>
-                <pre class="ratios-list">{% for r in calibration.sorted_ratios %}{{ r|floatformat:3 }}{% if not forloop.last %}, {% endif %}{% if forloop.counter|divisibleby:10 %}
-{% endif %}{% endfor %}</pre>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 
     {% if not results %}
     <div class="result-card">
@@ -546,7 +332,7 @@
                 <img src="data:image/jpeg;base64,{{ result.original_base64 }}" alt="Original">
             </div>
             <div class="image-container">
-                <div class="image-label">Detection Visualization</div>
+                <div class="image-label">Detection (grid + inscribed circles + sizes)</div>
                 <img src="data:image/jpeg;base64,{{ result.visualization_base64 }}" alt="Detection">
             </div>
         </div>
@@ -569,17 +355,10 @@
                 {% for detail in result.cell_details %}
                 <div class="grid-cell {% if detail.color %}{{ detail.color }}{% endif %}">
                     <span class="cell-num">{{ detail.index }}</span>
-                    {% if detail.size %}<span class="cell-size">{{ detail.size }}</span>{% endif %}
+                    {% if detail.size %}<span class="cell-size">{{ detail.size }}</span>
+                    <span class="cell-ratio">{{ detail.diameter_ratio|floatformat:2 }}</span>{% endif %}
                 </div>
                 {% endfor %}
-            </div>
-            <div class="legend">
-                <div class="legend-item"><span class="legend-dot green"></span>GREEN</div>
-                <div class="legend-item"><span class="legend-dot cyan"></span>CYAN</div>
-                <div class="legend-item"><span class="legend-dot blue"></span>BLUE</div>
-                <div class="legend-item"><span class="legend-dot red"></span>RED</div>
-                <div class="legend-item"><span class="legend-dot yellow"></span>YELLOW</div>
-                <div class="legend-item"><span class="legend-dot empty"></span>Empty</div>
             </div>
 
             <div class="stats">
@@ -599,42 +378,28 @@
                 {% endwith %}
             </div>
 
-            <div class="array-output full-width">
-                <div class="array-title">Parsed Grid Data (grid_color | grid_size)</div>
-                <div class="aligned-arrays">
-                    <div class="array-col">
-                        <div class="array-header">grid_color</div>
-                        {% for detail in result.cell_details %}
-                        <span class="array-cell {% if detail.color %}has-color{% endif %}">{% if detail.color %}{{ detail.color }}{% else %}null{% endif %}</span>{% if forloop.counter|divisibleby:9 %}<br>{% endif %}
-                        {% endfor %}
-                    </div>
-                    <div class="array-col">
-                        <div class="array-header">grid_size</div>
-                        {% for detail in result.cell_details %}
-                        <span class="array-cell size-{{ detail.size|default:0 }}">{{ detail.size|default:0 }}</span>{% if forloop.counter|divisibleby:9 %}<br>{% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
 
-            <div class="python-arrays">
-                <div class="array-output">
-                    <div class="array-title">Python: grid_color</div>
-                    <pre class="python-code">grid_color = [
+            <details class="python-arrays-toggle">
+                <summary class="array-title">Python Arrays</summary>
+                <div class="python-arrays">
+                    <div class="array-output">
+                        <div class="array-title">grid_color</div>
+                        <pre class="python-code">grid_color = [
     {% for detail in result.cell_details %}{% if forloop.counter0|divisibleby:9 and not forloop.first %}
     {% endif %}{% if detail.color %}"{{ detail.color }}"{% else %}None{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
 
 ]</pre>
-                </div>
-                <div class="array-output">
-                    <div class="array-title">Python: grid_size</div>
-                    <pre class="python-code">grid_size = [
+                    </div>
+                    <div class="array-output">
+                        <div class="array-title">grid_size</div>
+                        <pre class="python-code">grid_size = [
     {% for detail in result.cell_details %}{% if forloop.counter0|divisibleby:9 and not forloop.first %}
     {% endif %}{{ detail.size|default:0 }}{% if not forloop.last %}, {% endif %}{% endfor %}
 
 ]</pre>
+                    </div>
                 </div>
-            </div>
+            </details>
         </div>
         {% endif %}
     </div>

@@ -3,8 +3,8 @@ Cell analysis module for detecting circle color and size.
 
 Detection logic:
 - Check cell CENTER for color presence (not whole cell)
-- Size 1-5 based on diameter_ratio via minEnclosingCircle
-- diameter_ratio = (2 * radius_px) / cell_width
+- Size 1-5 based on inscribed circle diameter via distance transform
+- diameter_ratio = 2 * max_dt_near_center / cell_width
 - None = empty cell (no color at center)
 """
 import cv2
@@ -42,23 +42,22 @@ COLOR_RANGES = {
 # Center region size (ratio of cell size to check for color)
 CENTER_REGION_RATIO = 0.4
 
-# Minimum saturation to count as a color (excludes gray/white)
+# Minimum saturation for center color detection (excludes gray/white)
 MIN_SATURATION = 80
 
+# Lower saturation for full-image DT mask (captures circle edges)
+DT_MIN_SATURATION = 40
+
+# Thresholds derived from distance-transform diameter ratio clusters
 SIZE_THRESHOLDS = {
-    't1': 0.717,
-    't2': 0.886,
-    't3': 1.054,
-    't4': 1.223,
+    't1': 0.71,
+    't2': 0.96,
+    't3': 1.24,
+    't4': 1.49,
 }
 
-
-def set_size_thresholds(t1: float, t2: float, t3: float, t4: float) -> None:
-    """Update size thresholds dynamically."""
-    SIZE_THRESHOLDS['t1'] = t1
-    SIZE_THRESHOLDS['t2'] = t2
-    SIZE_THRESHOLDS['t3'] = t3
-    SIZE_THRESHOLDS['t4'] = t4
+# Morphological kernel for noise cleanup in color mask
+MORPH_KERNEL_SIZE = 3
 
 
 def _get_color_mask(hsv_image: np.ndarray, color_name: str) -> np.ndarray:
@@ -121,66 +120,84 @@ def _detect_color_at_center(cell_image: np.ndarray) -> tuple:
     return best_color, best_ratio
 
 
-def _measure_diameter_ratio(cell_image: np.ndarray, mask: np.ndarray) -> float:
-    """
-    Measure circle diameter as a ratio of cell width using minEnclosingCircle.
+def _get_full_color_mask(
+    image: np.ndarray,
+    color_name: str,
+) -> np.ndarray:
+    """Get morphologically cleaned binary mask for a color on the full image.
 
-    Returns 0.0 if no contour found.
+    Uses a lower saturation threshold than center detection to capture
+    circle edges where color fades to white.
     """
-    contours, _ = cv2.findContours(
-        mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    ranges = COLOR_RANGES[color_name]
+    saturation_mask = hsv[:, :, 1] >= DT_MIN_SATURATION
+
+    if color_name == 'RED':
+        mask1 = cv2.inRange(hsv, ranges['lower1'], ranges['upper1'])
+        mask2 = cv2.inRange(hsv, ranges['lower2'], ranges['upper2'])
+        color_mask = cv2.bitwise_or(mask1, mask2)
+    else:
+        color_mask = cv2.inRange(hsv, ranges['lower'], ranges['upper'])
+
+    mask = cv2.bitwise_and(
+        color_mask, saturation_mask.astype(np.uint8) * 255,
     )
-    if not contours:
-        return 0.0
+    kernel = cv2.getStructuringElement(
+        cv2.MORPH_ELLIPSE, (MORPH_KERNEL_SIZE, MORPH_KERNEL_SIZE),
+    )
+    cleaned = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    return cv2.morphologyEx(cleaned, cv2.MORPH_CLOSE, kernel)
 
-    largest = max(contours, key=cv2.contourArea)
-    (_, _), radius_px = cv2.minEnclosingCircle(largest)
-    cell_width = cell_image.shape[1]
-    return (2 * radius_px) / cell_width
+
+def _measure_diameter_ratio(
+    dist_map: np.ndarray,
+    cx: float,
+    cy: float,
+    cell_w: float,
+) -> float:
+    """Measure circle diameter via distance transform on full image.
+
+    Finds max distance-to-background near grid center (10% search
+    region). This equals the radius of the largest fully-colored
+    inscribed circle. Returns diameter / cell_width, capped at 2.0.
+    """
+    search_r = max(1, int(cell_w * 0.1))
+    h, w = dist_map.shape
+    y1 = max(0, int(cy) - search_r)
+    y2 = min(h, int(cy) + search_r + 1)
+    x1 = max(0, int(cx) - search_r)
+    x2 = min(w, int(cx) + search_r + 1)
+    region = dist_map[y1:y2, x1:x2]
+    if region.size == 0:
+        return 0.0
+    radius = min(float(np.max(region)), cell_w)
+    return (2.0 * radius) / cell_w
 
 
 def analyze_cell(cell_image: np.ndarray) -> dict:
+    """Analyze a single cell for color and size (standalone).
+
+    Uses distance transform on the cell image itself.
+    For full-image DT (better accuracy), use analyze_grid instead.
     """
-    Analyze a single cell for color and size.
-
-    Detection logic:
-    - Check CENTER of cell for color presence
-    - Measure diameter_ratio via minEnclosingCircle to determine size (1-5)
-
-    Args:
-        cell_image: BGR image of a single cell
-
-    Returns:
-        Dictionary with:
-            - color: Detected color name or None
-            - size: 1-5 based on diameter_ratio, or None
-            - confidence: Detection confidence (0-1)
-            - diameter_ratio: Circle diameter / cell width
-            - center_ratio: Ratio of colored pixels at center
-    """
+    empty = {
+        'color': None, 'size': None, 'confidence': 0,
+        'diameter_ratio': 0, 'center_ratio': 0,
+    }
     if cell_image.size == 0:
-        return {
-            'color': None,
-            'size': None,
-            'confidence': 0,
-            'diameter_ratio': 0,
-            'center_ratio': 0
-        }
+        return empty
 
     center_color, center_ratio = _detect_color_at_center(cell_image)
-
     if center_color is None:
-        return {
-            'color': None,
-            'size': None,
-            'confidence': 0,
-            'diameter_ratio': 0,
-            'center_ratio': 0
-        }
+        return empty
 
-    hsv = cv2.cvtColor(cell_image, cv2.COLOR_BGR2HSV)
-    mask = _get_color_mask(hsv, center_color)
-    diameter_ratio = _measure_diameter_ratio(cell_image, mask)
+    mask = _get_full_color_mask(cell_image, center_color)
+    dist_map = cv2.distanceTransform(mask, cv2.DIST_L2, 5)
+    h, w = cell_image.shape[:2]
+    diameter_ratio = _measure_diameter_ratio(
+        dist_map, w / 2.0, h / 2.0, float(w)
+    )
 
     if diameter_ratio > SIZE_THRESHOLDS['t4']:
         size = 5
@@ -193,128 +210,213 @@ def analyze_cell(cell_image: np.ndarray) -> dict:
     else:
         size = 1
 
-    confidence = min(1.0, center_ratio)
-
     return {
         'color': center_color,
         'size': size,
-        'confidence': confidence,
+        'confidence': min(1.0, center_ratio),
         'diameter_ratio': diameter_ratio,
-        'center_ratio': center_ratio
+        'center_ratio': center_ratio,
     }
 
 
-def analyze_grid(cells: list) -> dict:
-    """
-    Analyze all 81 cells and return grid data.
+def analyze_grid(image: np.ndarray, grid_info: dict) -> dict:
+    """Analyze all 81 cells using distance-transform sizing.
+
+    Extracts cells for color detection, then measures circle diameter
+    via distance transform on the full image for each colored cell.
 
     Args:
-        cells: List of 81 cell images
+        image: Full BGR image
+        grid_info: Grid detection result with grid_lines_h/v
 
     Returns:
-        Dictionary with:
-            - grid_color: List of 81 color values (or None)
-            - grid_size: List of 81 size values (0, 1, or None)
-            - cell_details: List of detailed analysis per cell
+        Dictionary with grid_color, grid_size, cell_details.
     """
+    cells = extract_cells(image, grid_info)
+    h_lines = grid_info['grid_lines_h']
+    v_lines = grid_info['grid_lines_v']
+    cell_w = float(v_lines[1] - v_lines[0])
+
     grid_color = []
     grid_size = []
     cell_details = []
+    dt_cache: dict[str, np.ndarray] = {}
 
     for i, cell in enumerate(cells):
-        result = analyze_cell(cell)
-        grid_color.append(result['color'])
-        grid_size.append(result['size'])
+        color, center_ratio = _detect_color_at_center(cell)
+
+        if color is None:
+            grid_color.append(None)
+            grid_size.append(None)
+            cell_details.append({
+                'index': i,
+                'row': i // 9,
+                'col': i % 9,
+                'color': None,
+                'size': None,
+                'confidence': 0,
+                'diameter_ratio': 0,
+                'center_ratio': 0,
+            })
+            continue
+
+        if color not in dt_cache:
+            mask = _get_full_color_mask(image, color)
+            dt_cache[color] = cv2.distanceTransform(
+                mask, cv2.DIST_L2, 5
+            )
+
+        row, col = i // 9, i % 9
+        cx = (v_lines[col] + v_lines[col + 1]) / 2.0
+        cy = (h_lines[row] + h_lines[row + 1]) / 2.0
+
+        diameter_ratio = _measure_diameter_ratio(
+            dt_cache[color], cx, cy, cell_w
+        )
+
+        if diameter_ratio > SIZE_THRESHOLDS['t4']:
+            size = 5
+        elif diameter_ratio > SIZE_THRESHOLDS['t3']:
+            size = 4
+        elif diameter_ratio > SIZE_THRESHOLDS['t2']:
+            size = 3
+        elif diameter_ratio > SIZE_THRESHOLDS['t1']:
+            size = 2
+        else:
+            size = 1
+
+        confidence = min(1.0, center_ratio)
+        grid_color.append(color)
+        grid_size.append(size)
         cell_details.append({
             'index': i,
-            'row': i // 9,
-            'col': i % 9,
-            **result
+            'row': row,
+            'col': col,
+            'color': color,
+            'size': size,
+            'confidence': confidence,
+            'diameter_ratio': diameter_ratio,
+            'center_ratio': center_ratio,
         })
 
     return {
         'grid_color': grid_color,
         'grid_size': grid_size,
-        'cell_details': cell_details
+        'cell_details': cell_details,
     }
 
 
-def visualize_detection(image: np.ndarray, grid_info: dict, analysis: dict) -> np.ndarray:
-    """
-    Create a visualization of the grid detection results.
+def visualize_detection(
+    image: np.ndarray,
+    grid_info: dict,
+    analysis: dict,
+) -> np.ndarray:
+    """Combined visualization on the original image.
 
-    Shows cell numbers in each cell, and for cells with dots, also shows size (1 or 2).
-
-    Args:
-        image: Original BGR image
-        grid_info: Grid detection result
-        analysis: Cell analysis result
-
-    Returns:
-        Annotated image showing detection results
+    Draws:
+    - Detected grid lines in thin blue
+    - Inscribed circle outlines in thin red
+    - Empty cells: gray cell number at center
+    - Colored cells: line 1 = ratio, line 2 = S1-S5
     """
     result = image.copy()
     h_lines = grid_info['grid_lines_h']
     v_lines = grid_info['grid_lines_v']
+    font = cv2.FONT_HERSHEY_SIMPLEX
 
-    # Draw grid lines (green)
+    dt_cache: dict[str, np.ndarray] = {}
+
+    # Draw grid lines (thin blue)
     for y in h_lines:
-        cv2.line(result, (int(v_lines[0]), int(y)), (int(v_lines[-1]), int(y)), (0, 200, 0), 2)
+        cv2.line(
+            result,
+            (int(v_lines[0]), int(y)),
+            (int(v_lines[-1]), int(y)),
+            (200, 120, 0), 1,
+        )
     for x in v_lines:
-        cv2.line(result, (int(x), int(h_lines[0])), (int(x), int(h_lines[-1])), (0, 200, 0), 2)
+        cv2.line(
+            result,
+            (int(x), int(h_lines[0])),
+            (int(x), int(h_lines[-1])),
+            (200, 120, 0), 1,
+        )
 
-    # Color map for detected colors
-    color_map = {
-        'GREEN': (0, 255, 0),
-        'CYAN': (255, 255, 0),
-        'BLUE': (255, 0, 0),
-        'RED': (0, 0, 255),
-        'YELLOW': (0, 255, 255)
-    }
-
-    # Draw cell info for all 81 cells
     for detail in analysis['cell_details']:
         row, col = detail['row'], detail['col']
-        cell_num = detail['index']
-
         x1 = int(v_lines[col])
         y1 = int(h_lines[row])
         x2 = int(v_lines[col + 1])
         y2 = int(h_lines[row + 1])
-        cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
+        cx = (x1 + x2) // 2
+        cy = (y1 + y2) // 2
 
-        if detail['color']:
-            # Cell has a dot - draw colored background
-            color = color_map.get(detail['color'], (128, 128, 128))
-
-            # Fill cell with semi-transparent color
-            overlay = result.copy()
-            cv2.rectangle(overlay, (x1+2, y1+2), (x2-2, y2-2), color, -1)
-            cv2.addWeighted(overlay, 0.4, result, 0.6, 0, result)
-
-            # Draw cell number and size
-            text = f"{cell_num}:{detail['size']}"
-            font_scale = 0.4
-            thickness = 1
-            (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+        color = detail['color']
+        if color is None:
+            text = str(detail['index'])
+            scale = 0.35
+            (tw, th), _ = cv2.getTextSize(text, font, scale, 1)
             tx = cx - tw // 2
             ty = cy + th // 2
+            cv2.putText(
+                result, text, (tx, ty), font, scale,
+                (150, 150, 150), 1,
+            )
+            continue
 
-            # White text with black outline for visibility
-            cv2.putText(result, text, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX,
-                       font_scale, (0, 0, 0), thickness + 2)
-            cv2.putText(result, text, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX,
-                       font_scale, (255, 255, 255), thickness)
-        else:
-            # Empty cell - just show cell number (smaller, gray)
-            text = str(cell_num)
-            font_scale = 0.35
-            thickness = 1
-            (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
-            tx = cx - tw // 2
-            ty = cy + th // 2
-            cv2.putText(result, text, (tx, ty), cv2.FONT_HERSHEY_SIMPLEX,
-                       font_scale, (150, 150, 150), thickness)
+        # Compute DT peak and radius
+        if color not in dt_cache:
+            mask = _get_full_color_mask(image, color)
+            dt_cache[color] = cv2.distanceTransform(
+                mask, cv2.DIST_L2, 5,
+            )
+
+        cell_dt = dt_cache[color][y1:y2, x1:x2]
+        if cell_dt.size == 0:
+            continue
+        peak_idx = np.unravel_index(
+            np.argmax(cell_dt), cell_dt.shape,
+        )
+        peak_x = x1 + int(peak_idx[1])
+        peak_y = y1 + int(peak_idx[0])
+        radius_px = float(cell_dt[peak_idx])
+
+        # Inscribed circle (thin red)
+        cv2.circle(
+            result, (peak_x, peak_y), int(radius_px),
+            (0, 0, 220), 1,
+        )
+
+        # Line 1: ratio value (above center)
+        dr = detail['diameter_ratio']
+        line1 = f"{dr:.2f}"
+        scale1 = 0.35
+        (tw1, th1), _ = cv2.getTextSize(line1, font, scale1, 1)
+        tx1 = peak_x - tw1 // 2
+        ty1 = peak_y - 2
+        cv2.putText(
+            result, line1, (tx1, ty1), font, scale1,
+            (0, 0, 0), 2,
+        )
+        cv2.putText(
+            result, line1, (tx1, ty1), font, scale1,
+            (255, 255, 255), 1,
+        )
+
+        # Line 2: size label (below center)
+        line2 = f"S{detail['size']}"
+        scale2 = 0.4
+        (tw2, th2), _ = cv2.getTextSize(line2, font, scale2, 1)
+        tx2 = peak_x - tw2 // 2
+        ty2 = peak_y + th1 + 4
+        cv2.putText(
+            result, line2, (tx2, ty2), font, scale2,
+            (0, 0, 0), 2,
+        )
+        cv2.putText(
+            result, line2, (tx2, ty2), font, scale2,
+            (255, 255, 255), 1,
+        )
 
     return result
 
@@ -332,49 +434,6 @@ def _to_native(obj):
     if isinstance(obj, (list, tuple)):
         return [_to_native(item) for item in obj]
     return obj
-
-
-def _calibrate_and_assign_sizes(cell_details: list) -> list:
-    """
-    Calibrate size thresholds from actual diameter ratios and reassign sizes 1-5.
-    """
-    ratios = [
-        d['diameter_ratio'] for d in cell_details if d['color'] is not None
-    ]
-
-    if len(ratios) < 2:
-        return [d['size'] for d in cell_details]
-
-    min_ratio = min(ratios)
-    max_ratio = max(ratios)
-    ratio_range = max_ratio - min_ratio
-
-    if ratio_range < 0.01:
-        return [3 if d['color'] else d['size'] for d in cell_details]
-
-    t1 = min_ratio + ratio_range * 0.20
-    t2 = min_ratio + ratio_range * 0.40
-    t3 = min_ratio + ratio_range * 0.60
-    t4 = min_ratio + ratio_range * 0.80
-
-    new_sizes = []
-    for detail in cell_details:
-        if detail['color'] is None:
-            new_sizes.append(detail['size'])
-        else:
-            dr = detail['diameter_ratio']
-            if dr > t4:
-                new_sizes.append(5)
-            elif dr > t3:
-                new_sizes.append(4)
-            elif dr > t2:
-                new_sizes.append(3)
-            elif dr > t1:
-                new_sizes.append(2)
-            else:
-                new_sizes.append(1)
-
-    return new_sizes
 
 
 def parse_grid(image_path: str) -> dict:
@@ -405,14 +464,12 @@ def parse_grid(image_path: str) -> dict:
             'grid_size': [0] * 81
         }
 
-    cells = extract_cells(image, grid_info)
-    analysis = analyze_grid(cells)
-    calibrated_sizes = _calibrate_and_assign_sizes(analysis['cell_details'])
+    analysis = analyze_grid(image, grid_info)
 
     return _to_native({
         'success': True,
         'grid_color': analysis['grid_color'],
-        'grid_size': calibrated_sizes,
+        'grid_size': analysis['grid_size'],
         'cell_details': analysis['cell_details'],
         'grid_info': {
             'bounds': grid_info['bounds'],
@@ -439,104 +496,14 @@ def process_image(image_path: str) -> dict:
     if grid_info is None:
         return {'error': 'Could not detect grid in image'}
 
-    # Extract cells
-    cells = extract_cells(image, grid_info)
-
-    # Analyze cells
-    analysis = analyze_grid(cells)
-
-    # Create visualization
+    analysis = analyze_grid(image, grid_info)
     viz_image = visualize_detection(image, grid_info, analysis)
 
     return {
         'grid_info': grid_info,
         'analysis': analysis,
         'visualization': viz_image,
-        'image_shape': image.shape
+        'image_shape': image.shape,
     }
 
 
-def calibrate_from_samples(image_paths: list) -> dict:
-    """
-    Analyze sample images to determine optimal 5-level size thresholds.
-
-    Args:
-        image_paths: List of paths to sample images
-
-    Returns:
-        Dictionary with calibration results and applied thresholds
-    """
-    all_ratios = []
-
-    for image_path in image_paths:
-        image = cv2.imread(image_path)
-        if image is None:
-            continue
-
-        grid_info = detect_grid_by_color(image)
-        if grid_info is None:
-            continue
-
-        cells = extract_cells(image, grid_info)
-
-        for cell in cells:
-            if cell.size == 0:
-                continue
-
-            center_color, _ = _detect_color_at_center(cell)
-            if center_color is None:
-                continue
-
-            hsv = cv2.cvtColor(cell, cv2.COLOR_BGR2HSV)
-            mask = _get_color_mask(hsv, center_color)
-            diameter_ratio = _measure_diameter_ratio(cell, mask)
-
-            all_ratios.append({
-                'ratio': diameter_ratio,
-                'color': center_color,
-                'image': image_path
-            })
-
-    if not all_ratios:
-        return {'error': 'No colored cells found in samples'}
-
-    sorted_ratios = sorted([r['ratio'] for r in all_ratios])
-    min_ratio = sorted_ratios[0]
-    max_ratio = sorted_ratios[-1]
-
-    range_size = max_ratio - min_ratio
-    t1 = min_ratio + range_size * 0.20
-    t2 = min_ratio + range_size * 0.40
-    t3 = min_ratio + range_size * 0.60
-    t4 = min_ratio + range_size * 0.80
-
-    set_size_thresholds(t1, t2, t3, t4)
-
-    bins = [0, 0.20, 0.40, 0.60, 0.80, 1.00,
-            1.20, 1.40, 1.60, 1.80, 2.00, 2.50]
-    histogram = {}
-    for i in range(len(bins) - 1):
-        count = sum(1 for r in sorted_ratios if bins[i] <= r < bins[i+1])
-        histogram[f'{bins[i]:.2f}-{bins[i+1]:.2f}'] = count
-
-    return {
-        'ratios': all_ratios,
-        'sorted_ratios': sorted_ratios,
-        'count': len(all_ratios),
-        'min': round(min_ratio, 3),
-        'max': round(max_ratio, 3),
-        'histogram': histogram,
-        'thresholds': {
-            't1': round(t1, 3),
-            't2': round(t2, 3),
-            't3': round(t3, 3),
-            't4': round(t4, 3),
-        },
-        'size_ranges': {
-            'size_1': f'< {t1:.3f}',
-            'size_2': f'{t1:.3f} - {t2:.3f}',
-            'size_3': f'{t2:.3f} - {t3:.3f}',
-            'size_4': f'{t3:.3f} - {t4:.3f}',
-            'size_5': f'> {t4:.3f}',
-        }
-    }

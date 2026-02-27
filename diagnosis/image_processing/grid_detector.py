@@ -74,14 +74,22 @@ def detect_grid_by_color(image: np.ndarray) -> Optional[dict]:
     y = y + (h - size) // 2
     w = h = size
 
-    # Generate 10 evenly spaced grid lines (for 9x9 grid)
-    cell_size = size / 9
-    h_grid = [y + i * cell_size for i in range(10)]
-    v_grid = [x + i * cell_size for i in range(10)]
+    # Find actual grid line centers via gray pixel projection
+    h_grid, v_grid = _find_line_centers_by_projection(
+        gray_mask, x, y, size,
+    )
+
+    if h_grid is None or v_grid is None:
+        cell_size = size / 9
+        h_grid = [y + i * cell_size for i in range(10)]
+        v_grid = [x + i * cell_size for i in range(10)]
+
+    cell_w = (v_grid[-1] - v_grid[0]) / 9
+    cell_h = (h_grid[-1] - h_grid[0]) / 9
 
     return {
         'bounds': (x, y, w, h),
-        'cell_size': (cell_size, cell_size),
+        'cell_size': (cell_w, cell_h),
         'grid_lines_h': h_grid,
         'grid_lines_v': v_grid
     }
@@ -191,6 +199,91 @@ def _detect_grid_by_contour(image: np.ndarray) -> Optional[dict]:
         'grid_lines_h': [y + i * cell_h for i in range(10)],
         'grid_lines_v': [x + i * cell_w for i in range(10)]
     }
+
+
+def _find_line_centers_by_projection(
+    gray_mask: np.ndarray,
+    x: int,
+    y: int,
+    size: int,
+) -> tuple[Optional[list], Optional[list]]:
+    """Find grid line center positions via gray pixel projection.
+
+    Projects the gray mask horizontally (for h-lines) and vertically
+    (for v-lines). Peaks in the projection correspond to grid line
+    centers, which are more accurate than evenly dividing the bounds.
+    """
+    margin = int(size * 0.02)
+    x1 = max(0, x - margin)
+    y1 = max(0, y - margin)
+    x2 = min(gray_mask.shape[1], x + size + margin)
+    y2 = min(gray_mask.shape[0], y + size + margin)
+
+    region = gray_mask[y1:y2, x1:x2]
+    if region.size == 0:
+        return None, None
+
+    h_proj = np.sum(region, axis=1).astype(float)
+    v_proj = np.sum(region, axis=0).astype(float)
+
+    h_peaks = _find_projection_peaks(h_proj, size / 9)
+    v_peaks = _find_projection_peaks(v_proj, size / 9)
+
+    if len(h_peaks) != 10 or len(v_peaks) != 10:
+        return None, None
+
+    h_grid = [float(y1 + p) for p in h_peaks]
+    v_grid = [float(x1 + p) for p in v_peaks]
+    return h_grid, v_grid
+
+
+def _find_projection_peaks(
+    proj: np.ndarray,
+    expected_spacing: float,
+) -> list[float]:
+    """Find peak positions in a 1D projection profile.
+
+    Uses thresholding + connected component center-of-mass to find
+    the center of each grid line.
+    """
+    threshold = np.max(proj) * 0.3
+    above = proj > threshold
+
+    peaks = []
+    in_peak = False
+    start = 0
+    for i in range(len(above)):
+        if above[i] and not in_peak:
+            start = i
+            in_peak = True
+        elif not above[i] and in_peak:
+            segment = proj[start:i]
+            center = start + np.average(
+                np.arange(len(segment)), weights=segment,
+            )
+            peaks.append(center)
+            in_peak = False
+    if in_peak:
+        segment = proj[start:]
+        center = start + np.average(
+            np.arange(len(segment)), weights=segment,
+        )
+        peaks.append(center)
+
+    if len(peaks) < 10:
+        return peaks
+
+    # Select the 10 most evenly spaced peaks
+    min_gap = expected_spacing * 0.5
+    filtered = [peaks[0]]
+    for p in peaks[1:]:
+        if p - filtered[-1] >= min_gap:
+            filtered.append(p)
+
+    if len(filtered) < 10:
+        return filtered
+
+    return _find_evenly_spaced(filtered, 10) or filtered[:10]
 
 
 def _refine_grid_bounds(image: np.ndarray, x: int, y: int, w: int, h: int) -> Optional[tuple]:

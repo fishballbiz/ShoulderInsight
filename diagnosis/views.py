@@ -16,7 +16,7 @@ from .disease_mapping import (
     get_all_diseases,
     simulate_disease_scores,
 )
-from .image_processing import parse_grid, calibrate_from_samples, process_image
+from .image_processing import parse_grid, process_image
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +214,7 @@ def diseases_view(request):
     return render(request, 'diagnosis/diseases.html', {'diseases': diseases})
 
 
-def grid_poc_view(request):
+def analyze_verify_view(request):
     """
     Proof of concept page for grid detection testing.
     Processes test images and displays detection results.
@@ -225,16 +225,11 @@ def grid_poc_view(request):
 
     test_images_dir = Path(settings.BASE_DIR) / 'data' / 'test_inputs'
     results = []
-    calibration = None
 
     if test_images_dir.exists():
         image_paths = sorted(test_images_dir.glob('*.jpeg'))
 
-        # Run calibration on all images
-        calibration = calibrate_from_samples([str(p) for p in image_paths])
-
-        # Process first 6 images for display
-        for image_path in image_paths[:6]:
+        for image_path in image_paths:
             result = process_image(str(image_path))
 
             if 'error' in result:
@@ -243,15 +238,17 @@ def grid_poc_view(request):
                     'error': result['error']
                 })
             else:
-                # Encode visualization as base64
                 viz = result['visualization']
                 _, buffer = cv2.imencode('.jpg', viz)
-                viz_base64 = base64.b64encode(buffer).decode('utf-8')
+                viz_base64 = base64.b64encode(
+                    buffer
+                ).decode('utf-8')
 
-                # Also encode original for comparison
                 original = cv2.imread(str(image_path))
                 _, orig_buffer = cv2.imencode('.jpg', original)
-                orig_base64 = base64.b64encode(orig_buffer).decode('utf-8')
+                orig_base64 = base64.b64encode(
+                    orig_buffer
+                ).decode('utf-8')
 
                 results.append({
                     'filename': image_path.name,
@@ -259,16 +256,23 @@ def grid_poc_view(request):
                     'visualization_base64': viz_base64,
                     'grid_info': {
                         'bounds': result['grid_info']['bounds'],
-                        'cell_size': result['grid_info']['cell_size']
+                        'cell_size': (
+                            result['grid_info']['cell_size']
+                        ),
                     },
-                    'grid_color': result['analysis']['grid_color'],
-                    'grid_size': result['analysis']['grid_size'],
-                    'cell_details': result['analysis']['cell_details']
+                    'grid_color': (
+                        result['analysis']['grid_color']
+                    ),
+                    'grid_size': (
+                        result['analysis']['grid_size']
+                    ),
+                    'cell_details': (
+                        result['analysis']['cell_details']
+                    ),
                 })
 
-    return render(request, 'diagnosis/grid_poc.html', {
+    return render(request, 'diagnosis/analyze_verify.html', {
         'results': results,
-        'calibration': calibration
     })
 
 
