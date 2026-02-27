@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import uuid
+from datetime import date
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -191,6 +192,21 @@ def result_view(request, examination_id):
         'grid_color': [None] * 81, 'grid_size': [0] * 81
     })
 
+    is_healthy = (
+        not left_hand.get('possible_diseases')
+        and not left_hand.get('attention_diseases')
+        and not right_hand.get('possible_diseases')
+        and not right_hand.get('attention_diseases')
+    )
+
+    health_tip = None
+    if is_healthy:
+        tips_path = os.path.join(settings.BASE_DIR, 'data', 'health_tips.json')
+        with open(tips_path, 'r', encoding='utf-8') as f:
+            tips = json.load(f)
+        day_of_year = date.today().timetuple().tm_yday
+        health_tip = tips[day_of_year % len(tips)]
+
     context = {
         'examination_id': examination_id,
         'operator_name': operator_name,
@@ -201,6 +217,8 @@ def result_view(request, examination_id):
         'merged_grid': merged_grid,
         'image_urls': image_urls,
         'image_count': accumulated.get('image_count', len(image_paths)),
+        'is_healthy': is_healthy,
+        'health_tip': health_tip,
     }
 
     return render(request, 'diagnosis/result.html', context)

@@ -791,6 +791,74 @@
         color: var(--text-muted);
     }
 
+    /* Healthy Result Styles */
+    .healthy-result {
+        text-align: center;
+    }
+
+    .healthy-congrats {
+        background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 60%, #9ae6b4 100%);
+        border: 2px solid #68d391;
+        text-align: center;
+        padding: 40px 24px;
+    }
+
+    .healthy-congrats .congrats-icon {
+        font-size: 4rem;
+        color: #38a169;
+        margin-bottom: 16px;
+        display: block;
+    }
+
+    .healthy-congrats h2 {
+        color: #276749;
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .healthy-congrats p {
+        color: #2f855a;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        max-width: 560px;
+        margin: 0 auto;
+    }
+
+    .healthy-tip {
+        border-left: 5px solid #48bb78;
+        text-align: left;
+    }
+
+    .tip-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #38a169;
+        margin-bottom: 16px;
+    }
+
+    .tip-header i {
+        font-size: 1.3rem;
+        color: #f6ad55;
+    }
+
+    .tip-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 12px;
+    }
+
+    .tip-content {
+        font-size: 0.95rem;
+        line-height: 1.9;
+        color: var(--text-dark);
+        text-align: justify;
+    }
+
     /* Print Styles */
     @media print {
         * {
@@ -969,6 +1037,31 @@
             background: #edf2f7 !important;
         }
 
+        .healthy-congrats {
+            background: #f0fff4 !important;
+            border: 2px solid #48bb78 !important;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .healthy-congrats .congrats-icon {
+            color: #38a169 !important;
+        }
+
+        .healthy-congrats h2 {
+            color: #276749 !important;
+        }
+
+        .healthy-tip {
+            border-left: 4px solid #48bb78 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .tip-header {
+            color: #38a169 !important;
+        }
+
         @page {
             margin: 1.5cm 1.5cm 3cm 1.5cm;
             size: A4;
@@ -1141,6 +1234,25 @@
         {% endif %}
     </div>
 
+    {% if is_healthy %}
+    <!-- Healthy Result -->
+    <div class="healthy-result">
+        <div class="card healthy-congrats">
+            <i class="bi bi-check-circle-fill congrats-icon"></i>
+            <h2>恭喜您！檢測結果正常</h2>
+            <p>本次肩部分析未發現明顯異常模式，您的肩部狀態良好，請繼續保持！</p>
+        </div>
+        {% if health_tip %}
+        <div class="card healthy-tip">
+            <div class="tip-header">
+                <i class="bi bi-lightbulb-fill"></i> 每日衛教小常識
+            </div>
+            <h3 class="tip-title">{{ health_tip.title }}</h3>
+            <div class="tip-content">{{ health_tip.content }}</div>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
     <!-- Grid Visualization -->
     <div class="card">
         <div class="section-title">
@@ -1328,6 +1440,7 @@
             </div>
         {% endif %}
     </div>
+    {% endif %}
 
     {% endif %}
 
