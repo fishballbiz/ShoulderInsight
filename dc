@@ -73,10 +73,11 @@ case "$1" in
         cat > "$ENV_FILE" <<ENVEOF
 EXPECTED_ACCOUNT=your-gcp-account@gmail.com
 SECRET_KEY=$GENERATED_KEY
+GEMINI_API_KEY=your-gemini-api-key
 ENVEOF
         echo "Created $ENV_FILE"
         echo "SECRET_KEY has been auto-generated."
-        echo "Edit EXPECTED_ACCOUNT before running ./dc publish"
+        echo "Edit EXPECTED_ACCOUNT and GEMINI_API_KEY before running ./dc publish"
         ;;
     "publish")
         # Check GCP account
@@ -87,6 +88,10 @@ ENVEOF
         fi
         if [ -z "$SECRET_KEY" ]; then
             echo "Error: SECRET_KEY not set. Run: ./dc init-repo"
+            exit 1
+        fi
+        if [ -z "$GEMINI_API_KEY" ]; then
+            echo "Error: GEMINI_API_KEY not set. Add it to .env.local"
             exit 1
         fi
         if [ "$CURRENT_ACCOUNT" != "$EXPECTED_ACCOUNT" ]; then
@@ -153,7 +158,7 @@ ENVEOF
             --concurrency=10 \
             --timeout=60 \
             --cpu-boost \
-            --set-env-vars="STATIC_URL=$STATIC_URL,SECRET_KEY=$SECRET_KEY"
+            --set-env-vars="STATIC_URL=$STATIC_URL,SECRET_KEY=$SECRET_KEY,GEMINI_API_KEY=$GEMINI_API_KEY"
 
         # Clean up old images (keep only latest)
         echo "Cleaning up old images..."

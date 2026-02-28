@@ -3,6 +3,7 @@ AI service for Gemini image analysis using Google GenAI SDK.
 """
 import json
 import logging
+import os
 from pathlib import Path
 
 from google import genai
@@ -16,11 +17,17 @@ API_KEY_PATH = Path(__file__).parent.parent / 'secret' / 'gemini_api.key'
 MODEL_NAME = 'gemini-2.5-flash'
 
 
+def _get_api_key() -> str:
+    """Read API key from environment variable, falling back to key file."""
+    api_key = os.environ.get('GEMINI_API_KEY')
+    if api_key:
+        return api_key
+    return API_KEY_PATH.read_text().strip()
+
+
 def _get_client() -> genai.Client:
     """Create and return a GenAI client for Gemini Developer API."""
-    api_key = API_KEY_PATH.read_text().strip()
-    # Explicitly use Gemini Developer API (not Vertex AI)
-    return genai.Client(api_key=api_key, vertexai=False)
+    return genai.Client(api_key=_get_api_key(), vertexai=False)
 
 
 def analyze_training_image(image_path: str) -> dict:

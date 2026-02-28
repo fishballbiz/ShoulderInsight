@@ -77,7 +77,7 @@ analyze_api:
 
 ## Configuration
 
-- `.env.local` — local settings not committed to repo (`EXPECTED_ACCOUNT`, `SECRET_KEY`). Run `./dc init-repo` to create.
+- `.env.local` — local settings not committed to repo (`EXPECTED_ACCOUNT`, `SECRET_KEY`, `GEMINI_API_KEY`). Run `./dc init-repo` to create.
 - `MEDIA_ROOT` env var (default `/media`) — uploaded images
 - `STATIC_ROOT` fixed at `/tmp/staticfiles` — only used in Docker build
 - Sessions at `/tmp/django_sessions` (file-based, no DB)
