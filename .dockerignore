@@ -9,3 +9,4 @@ __pycache__/
 *.pyc
 data/test_inputs/
 data/verification.html
+.DS_Store

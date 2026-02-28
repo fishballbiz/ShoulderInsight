@@ -144,6 +144,15 @@ ENVEOF
         docker build --platform linux/amd64 -t $REGISTRY:latest .
         docker push $REGISTRY:latest
 
+        # Get existing service URL for ALLOWED_HOSTS
+        SERVICE_URL=$(gcloud run services describe $IMAGE_NAME --region=$GCP_REGION --format="value(status.url)" 2>/dev/null || echo "")
+        if [ -n "$SERVICE_URL" ]; then
+            SERVICE_HOST=$(echo "$SERVICE_URL" | sed 's|https://||')
+            ALLOWED_HOSTS_VAL="$SERVICE_HOST"
+        else
+            ALLOWED_HOSTS_VAL=""
+        fi
+
         # Deploy to Cloud Run with minimal resources
         echo "Deploying to Cloud Run..."
         gcloud run deploy $IMAGE_NAME \
@@ -158,7 +167,7 @@ ENVEOF
             --concurrency=10 \
             --timeout=60 \
             --cpu-boost \
-            --set-env-vars="STATIC_URL=$STATIC_URL,SECRET_KEY=$SECRET_KEY,GEMINI_API_KEY=$GEMINI_API_KEY"
+            --set-env-vars="STATIC_URL=$STATIC_URL,SECRET_KEY=$SECRET_KEY,GEMINI_API_KEY=$GEMINI_API_KEY,ALLOWED_HOSTS=$ALLOWED_HOSTS_VAL"
 
         # Clean up old images (keep only latest)
         echo "Cleaning up old images..."

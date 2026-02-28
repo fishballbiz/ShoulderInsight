@@ -1,9 +1,12 @@
+import base64
 import json
 import logging
 import os
 import uuid
 from datetime import date
+from pathlib import Path
 
+import cv2
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
@@ -22,13 +25,30 @@ from .image_processing import parse_grid, process_image
 logger = logging.getLogger(__name__)
 
 
+MAX_UPLOAD_FILES = 10
+MAX_OPERATOR_NAME_LENGTH = 50
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png'}
+MAGIC_BYTES = {
+    b'\xff\xd8\xff': 'jpeg',
+    b'\x89PNG\r\n\x1a\n': 'png',
+}
+
+
+def _validate_image_magic_bytes(file_obj: object) -> bool:
+    header = file_obj.read(8)
+    file_obj.seek(0)
+    return any(header.startswith(sig) for sig in MAGIC_BYTES)
+
+
 def upload_view(request):
     """Upload page for multiple examination images."""
     if request.method == 'POST':
-        operator_name = request.POST.get('operator_name')
+        operator_name = (
+            request.POST.get('operator_name', '')[:MAX_OPERATOR_NAME_LENGTH]
+        )
         image_files = request.FILES.getlist('image')
 
-        if not operator_name:
+        if not operator_name.strip():
             messages.error(request, '請輸入操作者姓名')
             return redirect('diagnosis:upload')
 
@@ -36,10 +56,19 @@ def upload_view(request):
             messages.error(request, '請上傳至少一張圖片')
             return redirect('diagnosis:upload')
 
-        allowed_types = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+        if len(image_files) > MAX_UPLOAD_FILES:
+            messages.error(
+                request, f'最多上傳 {MAX_UPLOAD_FILES} 張圖片'
+            )
+            return redirect('diagnosis:upload')
+
         for image_file in image_files:
-            if image_file.content_type not in allowed_types:
+            ext = os.path.splitext(image_file.name)[1].lower()
+            if ext not in ALLOWED_EXTENSIONS:
                 messages.error(request, '僅支援 JPG、PNG 格式的圖片')
+                return redirect('diagnosis:upload')
+            if not _validate_image_magic_bytes(image_file):
+                messages.error(request, '檔案內容不是有效的圖片格式')
                 return redirect('diagnosis:upload')
 
         examination_id = str(uuid.uuid4())
@@ -49,7 +78,7 @@ def upload_view(request):
 
         image_paths = []
         for idx, image_file in enumerate(image_files):
-            ext = os.path.splitext(image_file.name)[1]
+            ext = os.path.splitext(image_file.name)[1].lower()
             filename = f"{examination_id}_{idx}{ext}"
             image_path = os.path.join(upload_dir, filename)
 
@@ -237,10 +266,6 @@ def analyze_verify_view(request):
     Proof of concept page for grid detection testing.
     Processes test images and displays detection results.
     """
-    import base64
-    import cv2
-    from pathlib import Path
-
     test_images_dir = Path(settings.BASE_DIR) / 'data' / 'test_inputs'
     results = []
 
@@ -302,6 +327,14 @@ def score_simulator_view(request):
     })
 
 
+def _safe_int(value: str, default: int, min_val: int, max_val: int) -> int:
+    try:
+        n = int(value)
+    except (ValueError, TypeError):
+        return default
+    return max(min_val, min(n, max_val))
+
+
 @require_POST
 def score_simulator_api(request):
     """API endpoint for score simulation via htmx."""
@@ -315,9 +348,15 @@ def score_simulator_api(request):
         user_grid = [0] * 81
     result = simulate_disease_scores(
         user_grid=user_grid,
-        light_min=int(request.POST.get('light_min', 4)),
-        light_max=int(request.POST.get('light_max', 8)),
-        mild_max=int(request.POST.get('mild_max', 18)),
+        light_min=_safe_int(
+            request.POST.get('light_min'), 4, 1, 99
+        ),
+        light_max=_safe_int(
+            request.POST.get('light_max'), 8, 1, 99
+        ),
+        mild_max=_safe_int(
+            request.POST.get('mild_max'), 18, 1, 99
+        ),
     )
     for d in result['scored']:
         d['grid_color_json'] = json.dumps(d['grid_color'])
