@@ -1,4 +1,5 @@
 secret/
+.env.local
 .playwright-mcp/
 data/verification.html
 __pycache__/

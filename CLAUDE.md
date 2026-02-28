@@ -9,6 +9,7 @@ Smart Shoulder Rehabilitation AI Diagnostic Platform for Huifu Rehabilitation Cl
 ## Development Commands
 
 ```bash
+./dc init-repo       # Initialize .env.local (first-time setup)
 ./dc up              # Build and start (detached, removes orphans)
 ./dc down            # Stop services
 ./dc dev             # Enter container bash shell
@@ -76,6 +77,7 @@ analyze_api:
 
 ## Configuration
 
+- `.env.local` — local settings not committed to repo (`EXPECTED_ACCOUNT`, `SECRET_KEY`). Run `./dc init-repo` to create.
 - `MEDIA_ROOT` env var (default `/media`) — uploaded images
 - `STATIC_ROOT` fixed at `/tmp/staticfiles` — only used in Docker build
 - Sessions at `/tmp/django_sessions` (file-based, no DB)

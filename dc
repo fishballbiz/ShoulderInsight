@@ -2,6 +2,13 @@
 
 # ./dc utility script
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/.env.local" ]; then
+    set -a
+    source "$SCRIPT_DIR/.env.local"
+    set +a
+fi
+
 COMPOSE_FILE="docker-compose.yml"
 SERVICE_NAME="web"
 
@@ -21,6 +28,7 @@ function show_help {
     echo "  logs            View logs"
     echo "  manage [args]   Run python manage.py [args]"
     echo "  publish         Deploy to GCP Cloud Run"
+    echo "  init-repo       Initialize .env.local with required settings"
     echo "  help            Show this help message"
 }
 
@@ -55,10 +63,32 @@ case "$1" in
         shift
         docker-compose -f $COMPOSE_FILE run --rm $SERVICE_NAME python manage.py "$@"
         ;;
+    "init-repo")
+        ENV_FILE="$SCRIPT_DIR/.env.local"
+        if [ -f "$ENV_FILE" ]; then
+            echo ".env.local already exists at $ENV_FILE"
+            exit 0
+        fi
+        GENERATED_KEY=$(python3 -c "import secrets; print(secrets.token_urlsafe(50))")
+        cat > "$ENV_FILE" <<ENVEOF
+EXPECTED_ACCOUNT=your-gcp-account@gmail.com
+SECRET_KEY=$GENERATED_KEY
+ENVEOF
+        echo "Created $ENV_FILE"
+        echo "SECRET_KEY has been auto-generated."
+        echo "Edit EXPECTED_ACCOUNT before running ./dc publish"
+        ;;
     "publish")
         # Check GCP account
         CURRENT_ACCOUNT=$(gcloud config get-value account 2>/dev/null)
-        EXPECTED_ACCOUNT="fishbudin@gmail.com"
+        if [ -z "$EXPECTED_ACCOUNT" ]; then
+            echo "Error: EXPECTED_ACCOUNT not set. Run: ./dc init-repo"
+            exit 1
+        fi
+        if [ -z "$SECRET_KEY" ]; then
+            echo "Error: SECRET_KEY not set. Run: ./dc init-repo"
+            exit 1
+        fi
         if [ "$CURRENT_ACCOUNT" != "$EXPECTED_ACCOUNT" ]; then
             echo "Error: Wrong GCP account. Expected $EXPECTED_ACCOUNT, got $CURRENT_ACCOUNT"
             echo "Run: gcloud config set account $EXPECTED_ACCOUNT"
@@ -123,7 +153,7 @@ case "$1" in
             --concurrency=10 \
             --timeout=60 \
             --cpu-boost \
-            --set-env-vars="STATIC_URL=$STATIC_URL"
+            --set-env-vars="STATIC_URL=$STATIC_URL,SECRET_KEY=$SECRET_KEY"
 
         # Clean up old images (keep only latest)
         echo "Cleaning up old images..."

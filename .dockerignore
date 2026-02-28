@@ -1,0 +1,11 @@
+.env.local
+.git/
+.gitignore
+.dockerignore
+.claude/
+.playwright-mcp/
+secret/
+__pycache__/
+*.pyc
+data/test_inputs/
+data/verification.html
