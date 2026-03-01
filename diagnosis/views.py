@@ -2,8 +2,8 @@ import base64
 import json
 import logging
 import os
+import random
 import uuid
-from datetime import date
 from pathlib import Path
 
 import cv2
@@ -233,8 +233,7 @@ def result_view(request, examination_id):
         tips_path = os.path.join(settings.BASE_DIR, 'data', 'health_tips.json')
         with open(tips_path, 'r', encoding='utf-8') as f:
             tips = json.load(f)
-        day_of_year = date.today().timetuple().tm_yday
-        health_tip = tips[day_of_year % len(tips)]
+        health_tip = random.choice(tips)
 
     context = {
         'examination_id': examination_id,
