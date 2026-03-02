@@ -12,13 +12,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 GIT_COMMIT = os.environ.get('GIT_COMMIT', '')
 if not GIT_COMMIT:
-    try:
-        GIT_COMMIT = subprocess.check_output(
-            ['git', 'rev-parse', '--short', 'HEAD'],
-            cwd=BASE_DIR, stderr=subprocess.DEVNULL
-        ).decode().strip()
-    except Exception:
-        GIT_COMMIT = 'unknown'
+    version_file = BASE_DIR / '.version'
+    if version_file.exists():
+        GIT_COMMIT = version_file.read_text().strip()
+    else:
+        try:
+            GIT_COMMIT = subprocess.check_output(
+                ['git', 'rev-parse', '--short', 'HEAD'],
+                cwd=BASE_DIR, stderr=subprocess.DEVNULL
+            ).decode().strip()
+        except Exception:
+            GIT_COMMIT = 'unknown'
 
 DEBUG = os.environ.get('DEBUG', '') in ('1', 'true', 'True')
 

@@ -51,6 +51,7 @@ case "$1" in
         docker-compose -f $COMPOSE_FILE run --rm --service-ports $SERVICE_NAME bash
         ;;
     "up")
+        export GIT_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "dev")
         docker-compose -f $COMPOSE_FILE up -d --remove-orphans
         ;;
     "down")

@@ -13,6 +13,7 @@ services:
       - SECRET_KEY=dev_secret_key
       - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
       - MEDIA_ROOT=/media
+      - GIT_COMMIT=${GIT_COMMIT:-dev}
 
 volumes:
   media_data:

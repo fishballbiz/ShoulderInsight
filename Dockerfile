@@ -31,12 +31,13 @@ RUN pip install \
     opencv-python-headless==4.13.0.92 \
     numpy==2.4.2
 
-# Git commit hash (passed at build time)
-ARG GIT_COMMIT=unknown
-ENV GIT_COMMIT=${GIT_COMMIT}
-
 # Copy project
 COPY . /app/
+
+# Git commit hash (passed at build time)
+ARG GIT_COMMIT=unknown
+RUN echo "${GIT_COMMIT}" > /app/.version
+ENV GIT_COMMIT=${GIT_COMMIT}
 
 # Create required directories and non-root user
 RUN mkdir -p /media/uploads /tmp/django_sessions \
