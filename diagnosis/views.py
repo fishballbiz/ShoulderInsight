@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
 from .ai_service import analyze_training_image
@@ -188,6 +189,7 @@ def analyze_api(request, examination_id):
     return JsonResponse({'success': True, 'redirect_url': redirect_url})
 
 
+@never_cache
 def result_view(request, examination_id):
     """Result page displaying accumulated diagnosis results."""
     session_exam_id = request.session.get('examination_id')

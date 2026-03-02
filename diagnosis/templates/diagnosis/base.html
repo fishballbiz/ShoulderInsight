@@ -23,6 +23,16 @@
             color: var(--text-dark);
         }
 
+        @media print {
+            body {
+                min-height: auto !important;
+                background: white !important;
+            }
+            .navbar {
+                display: none !important;
+            }
+        }
+
         .navbar {
             background: linear-gradient(90deg, var(--primary-color), var(--primary-light)) !important;
             box-shadow: 0 2px 10px rgba(44, 82, 130, 0.15);

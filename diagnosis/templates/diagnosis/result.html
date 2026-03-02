@@ -782,6 +782,11 @@
         display: none;
     }
 
+    /* Print Spacer - hidden on screen */
+    .print-spacer {
+        display: none;
+    }
+
     /* Footer */
     .print-footer {
         margin-top: 40px;
@@ -886,7 +891,8 @@
         }
 
         .result-container {
-            max-width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
             padding: 0;
         }
 
@@ -1080,8 +1086,14 @@
             margin-top: 1cm;
         }
 
+        .print-spacer {
+            display: block !important;
+            height: 80px;
+        }
+
         .print-footer {
             display: block !important;
+            width: 100% !important;
             margin-top: 20px;
             padding-top: 8px;
             border-top: 1px solid #cbd5e0;
@@ -1458,6 +1470,8 @@
     {% endif %}
 
     {% endif %}
+
+    <div class="print-spacer" aria-hidden="true"></div>
 
     <!-- Actions -->
     <div class="action-buttons">
