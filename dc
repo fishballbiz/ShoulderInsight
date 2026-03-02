@@ -140,8 +140,9 @@ ENVEOF
         STATIC_URL="https://storage.googleapis.com/$STATIC_BUCKET/static/"
 
         # Build and push image
-        echo "Building and pushing image..."
-        docker build --platform linux/amd64 -t $REGISTRY:latest .
+        GIT_COMMIT=$(git rev-parse --short HEAD)
+        echo "Building and pushing image (commit: $GIT_COMMIT)..."
+        docker build --platform linux/amd64 --build-arg GIT_COMMIT=$GIT_COMMIT -t $REGISTRY:latest .
         docker push $REGISTRY:latest
 
         # Get existing service URL for ALLOWED_HOSTS
