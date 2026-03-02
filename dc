@@ -81,6 +81,9 @@ ENVEOF
         echo "Edit EXPECTED_ACCOUNT and GEMINI_API_KEY before running ./dc deploy"
         ;;
     "deploy")
+        set -e
+        trap 'echo "Deploy failed! Aborting."; exit 1' ERR
+
         # Check GCP account
         CURRENT_ACCOUNT=$(gcloud config get-value account 2>/dev/null)
         if [ -z "$EXPECTED_ACCOUNT" ]; then
