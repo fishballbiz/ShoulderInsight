@@ -791,7 +791,9 @@
 
     .print-footer-content {
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
+        gap: 4px;
         font-size: 0.85rem;
         color: var(--text-muted);
         margin-bottom: 8px;
@@ -1051,6 +1053,7 @@
         .healthy-congrats {
             background: #f0fff4 !important;
             border: 2px solid #48bb78 !important;
+            padding: 20px 16px;
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
         }
@@ -1065,8 +1068,6 @@
 
         .healthy-tip {
             border-left: 4px solid #48bb78 !important;
-            break-inside: avoid;
-            page-break-inside: avoid;
         }
 
         .tip-header {
@@ -1084,17 +1085,25 @@
 
         .print-footer {
             display: block !important;
+            position: static;
+            clear: both;
+            overflow: visible;
             margin-top: 30px;
             padding-top: 12px;
             border-top: 1px solid #cbd5e0;
             font-size: 9pt;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
 
         .print-footer-content {
-            display: flex;
-            justify-content: space-between;
+            display: block;
             color: #4a5568;
             margin-bottom: 4px;
+        }
+
+        .print-footer-content span {
+            display: block;
         }
 
         .print-footer-disclaimer {
