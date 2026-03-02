@@ -913,8 +913,6 @@
         .card {
             box-shadow: none;
             border: 1px solid #cbd5e0;
-            break-inside: avoid;
-            page-break-inside: avoid;
             margin-bottom: 15px;
             padding: 15px;
         }
@@ -1076,7 +1074,6 @@
 
         @page {
             margin: 1.5cm;
-            size: A4;
         }
 
         @page :first {
@@ -1085,15 +1082,10 @@
 
         .print-footer {
             display: block !important;
-            position: static;
-            clear: both;
-            overflow: visible;
-            margin-top: 30px;
-            padding-top: 12px;
+            margin-top: 20px;
+            padding-top: 8px;
             border-top: 1px solid #cbd5e0;
             font-size: 9pt;
-            page-break-inside: avoid;
-            break-inside: avoid;
         }
 
         .print-footer-content {
