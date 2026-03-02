@@ -40,12 +40,12 @@ RUN echo "${GIT_COMMIT}" > /app/.version
 ENV GIT_COMMIT=${GIT_COMMIT}
 
 # Create required directories and non-root user
-RUN mkdir -p /media/uploads /tmp/django_sessions \
+RUN mkdir -p /media/uploads /tmp/django_sessions /tmp/staticfiles \
     && useradd -r -s /bin/false appuser \
     && chown -R appuser:appuser /app /media /tmp/staticfiles /tmp/django_sessions
 
-# Collect static files at build time
-RUN python manage.py collectstatic --noinput
+# Collect static files at build time (dummy key, not used at runtime)
+RUN SECRET_KEY=build-only python manage.py collectstatic --noinput
 
 # Switch to non-root user
 USER appuser
