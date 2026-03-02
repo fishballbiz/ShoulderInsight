@@ -27,7 +27,7 @@ function show_help {
     echo "  down            Stop services"
     echo "  logs            View logs"
     echo "  manage [args]   Run python manage.py [args]"
-    echo "  publish         Deploy to GCP Cloud Run"
+    echo "  deploy          Deploy to GCP Cloud Run"
     echo "  init-repo       Initialize .env.local with required settings"
     echo "  help            Show this help message"
 }
@@ -77,9 +77,9 @@ GEMINI_API_KEY=your-gemini-api-key
 ENVEOF
         echo "Created $ENV_FILE"
         echo "SECRET_KEY has been auto-generated."
-        echo "Edit EXPECTED_ACCOUNT and GEMINI_API_KEY before running ./dc publish"
+        echo "Edit EXPECTED_ACCOUNT and GEMINI_API_KEY before running ./dc deploy"
         ;;
-    "publish")
+    "deploy")
         # Check GCP account
         CURRENT_ACCOUNT=$(gcloud config get-value account 2>/dev/null)
         if [ -z "$EXPECTED_ACCOUNT" ]; then

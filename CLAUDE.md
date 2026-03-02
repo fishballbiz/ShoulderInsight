@@ -15,7 +15,7 @@ Smart Shoulder Rehabilitation AI Diagnostic Platform for Huifu Rehabilitation Cl
 ./dc dev             # Enter container bash shell
 ./dc logs            # Tail logs
 ./dc manage <cmd>    # Run Django management commands
-./dc publish         # Deploy to GCP Cloud Run (asia-east1)
+./dc deploy          # Deploy to GCP Cloud Run (asia-east1)
 ```
 
 No `collectstatic` needed in dev — Django's runserver serves static files directly.
