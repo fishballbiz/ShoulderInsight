@@ -266,10 +266,14 @@
         margin-right: 8px;
     }
 
+    .mobile-only { display: none; }
+
     @media (max-width: 768px) {
         .mobile-options {
             display: flex;
         }
+        .desktop-only { display: none; }
+        .mobile-only { display: block; }
         .dropzone {
             min-height: 180px;
             padding: 24px 16px;
@@ -305,7 +309,8 @@
             <div class="dropzone" id="dropzone">
                 <div class="default-content">
                     <i class="bi bi-camera dropzone-icon"></i>
-                    <p class="dropzone-text">點擊拍照或選擇圖片</p>
+                    <p class="dropzone-text desktop-only">點擊拍照或選擇圖片</p>
+                    <p class="dropzone-text mobile-only">請使用下方按鈕拍照或選擇圖片</p>
                     <p class="dropzone-subtext">支援 JPG, PNG 格式，可選多張</p>
                 </div>
                 <input type="file" id="fileInput" name="image" accept="image/*" multiple style="display: none;">
