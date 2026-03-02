@@ -128,26 +128,29 @@ ENVEOF
             --member=allUsers \
             --role=roles/storage.objectViewer 2>/dev/null || true
 
-        # Collect and upload static files
-        echo "Collecting static files..."
-        docker-compose -f $COMPOSE_FILE run --rm $SERVICE_NAME python manage.py collectstatic --noinput
-
-        echo "Uploading static files to GCS..."
-        gcloud storage rsync staticfiles/ gs://$STATIC_BUCKET/static/ \
-            --recursive \
-            --delete-unmatched-destination-objects
-
-        # Set cache headers for static files
-        gcloud storage objects update gs://$STATIC_BUCKET/static/** \
-            --cache-control="public, max-age=86400" 2>/dev/null || true
-
-        STATIC_URL="https://storage.googleapis.com/$STATIC_BUCKET/static/"
-
         # Build and push image
         GIT_COMMIT=$(git rev-parse --short HEAD)
         echo "Building and pushing image (commit: $GIT_COMMIT)..."
         docker build --platform linux/amd64 --build-arg GIT_COMMIT=$GIT_COMMIT -t $REGISTRY:latest .
         docker push $REGISTRY:latest
+
+        # Extract static files from built image and upload to GCS
+        echo "Extracting static files from image..."
+        TEMP_CONTAINER=$(docker create $REGISTRY:latest)
+        rm -rf /tmp/deploy-staticfiles
+        docker cp $TEMP_CONTAINER:/tmp/staticfiles /tmp/deploy-staticfiles
+        docker rm $TEMP_CONTAINER
+
+        echo "Uploading static files to GCS..."
+        gcloud storage rsync /tmp/deploy-staticfiles/ gs://$STATIC_BUCKET/static/ \
+            --recursive \
+            --delete-unmatched-destination-objects
+
+        gcloud storage objects update gs://$STATIC_BUCKET/static/** \
+            --cache-control="public, max-age=86400" 2>/dev/null || true
+
+        rm -rf /tmp/deploy-staticfiles
+        STATIC_URL="https://storage.googleapis.com/$STATIC_BUCKET/static/"
 
         # Get existing service URL for ALLOWED_HOSTS
         SERVICE_URL=$(gcloud run services describe $IMAGE_NAME --region=$GCP_REGION --format="value(status.url)" 2>/dev/null || echo "")
