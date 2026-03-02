@@ -1092,12 +1092,7 @@
         }
 
         .print-footer {
-            display: block !important;
-            width: 100% !important;
-            margin-top: 20px;
-            padding-top: 8px;
-            border-top: 1px solid #cbd5e0;
-            font-size: 9pt;
+            display: none !important;
         }
 
         .print-footer-content {
@@ -1512,6 +1507,7 @@
         <div class="print-footer-disclaimer">
             本報告由 AI 系統自動生成，分析結果可能存在誤差，僅供參考。如有任何疑慮，請諮詢專業醫師。
         </div>
+        <div style="font-size: 0.75rem; color: #a0aec0; margin-top: 4px;">v{{ git_commit }}</div>
     </div>
 </div>
 

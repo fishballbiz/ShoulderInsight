@@ -249,6 +249,7 @@ def result_view(request, examination_id):
         'image_count': accumulated.get('image_count', len(image_paths)),
         'is_healthy': is_healthy,
         'health_tip': health_tip,
+        'git_commit': settings.GIT_COMMIT,
     }
 
     return render(request, 'diagnosis/result.html', context)
